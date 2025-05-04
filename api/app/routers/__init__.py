@@ -1,0 +1,12 @@
+"""Package exposing individual FastAPI routers for the service."""
+
+from fastapi import FastAPI
+
+from .chat_router import router as chat_router
+
+__all__ = ["chat_router"]
+
+
+def init_app(app: "FastAPI") -> None:
+    """Register all routers with the given FastAPI *app*."""
+    app.include_router(chat_router)
