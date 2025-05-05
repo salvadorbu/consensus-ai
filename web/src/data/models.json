@@ -1,818 +1,966 @@
 [
-    {
-        "id": "qwen/qwen3-0.6b-04-28:free",
-        "name": "Qwen: Qwen3 0.6B (free)",
-        "created": 1746043526,
-        "description": "Qwen3-0.6B is a lightweight, 0.6 billion parameter language model in the Qwen3 series, offering support for both general-purpose dialogue and structured reasoning through a dual-mode (thinking/non-thinking) architecture. Despite its small size, it supports long contexts up to 32,768 tokens and provides multilingual, tool-use, and instruction-following capabilities.",
-        "context_length": 32000,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Qwen3",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 32000,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "reasoning",
-          "include_reasoning",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logit_bias"
-        ]
-      },
-      {
-        "id": "qwen/qwen3-1.7b:free",
-        "name": "Qwen: Qwen3 1.7B (free)",
-        "created": 1746031388,
-        "description": "Qwen3-1.7B is a compact, 1.7 billion parameter dense language model from the Qwen3 series, featuring dual-mode operation for both efficient dialogue (non-thinking) and advanced reasoning (thinking). Despite its small size, it supports 32,768-token contexts and delivers strong multilingual, instruction-following, and agentic capabilities, including tool use and structured output.",
-        "context_length": 32000,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Qwen3",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 32000,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "reasoning",
-          "include_reasoning",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logit_bias"
-        ]
-      },
-      {
-        "id": "qwen/qwen3-4b:free",
-        "name": "Qwen: Qwen3 4B (free)",
-        "created": 1746031104,
-        "description": "Qwen3-4B is a 4 billion parameter dense language model from the Qwen3 series, designed to support both general-purpose and reasoning-intensive tasks. It introduces a dual-mode architecture—thinking and non-thinking—allowing dynamic switching between high-precision logical reasoning and efficient dialogue generation. This makes it well-suited for multi-turn chat, instruction following, and complex agent workflows.",
-        "context_length": 128000,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Qwen3",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 128000,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "reasoning",
-          "include_reasoning",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logit_bias"
-        ]
-      },
-      {
-        "id": "google/gemini-2.0-flash-001",
-        "name": "Google: Gemini 2.0 Flash",
-        "created": 1738769413,
-        "description": "Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to [Gemini Flash 1.5](/google/gemini-flash-1.5), while maintaining quality on par with larger models like [Gemini Pro 1.5](/google/gemini-pro-1.5). It introduces notable enhancements in multimodal understanding, coding capabilities, complex instruction following, and function calling. These advancements come together to deliver more seamless and robust agentic experiences.",
-        "context_length": 1000000,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image",
-            "file"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Gemini",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.0000001",
-          "completion": "0.0000004",
-          "request": "0",
-          "image": "0.0000258",
-          "web_search": "0",
-          "internal_reasoning": "0",
-          "input_cache_read": "0.000000025",
-          "input_cache_write": "0.0000001833"
-        },
-        "top_provider": {
-          "context_length": 1000000,
-          "max_completion_tokens": 8192,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "tools",
-          "tool_choice",
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "response_format",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "deepseek/deepseek-r1:free",
-        "name": "DeepSeek: R1 (free)",
-        "created": 1737381095,
-        "description": "DeepSeek R1 is here: Performance on par with [OpenAI o1](/openai/o1), but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active in an inference pass.\n\nFully open-source model & [technical report](https://api-docs.deepseek.com/news/news250120).\n\nMIT licensed: Distill & commercialize freely!",
-        "context_length": 163840,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "DeepSeek",
-          "instruct_type": "deepseek-r1"
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 163840,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "reasoning",
-          "include_reasoning",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "top_a",
-          "logprobs"
-        ]
-      },
-      {
-        "id": "deepseek/deepseek-chat:free",
-        "name": "DeepSeek: DeepSeek V3 (free)",
-        "created": 1735241320,
-        "description": "DeepSeek-V3 is the latest model from the DeepSeek team, building upon the instruction following and coding abilities of the previous versions. Pre-trained on nearly 15 trillion tokens, the reported evaluations reveal that the model outperforms other open-source models and rivals leading closed-source models.\n\nFor model details, please visit [the DeepSeek-V3 repo](https://github.com/deepseek-ai/DeepSeek-V3) for more information, or see the [launch announcement](https://api-docs.deepseek.com/news/news1226).",
-        "context_length": 163840,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "DeepSeek",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 163840,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logprobs",
-          "logit_bias",
-          "top_logprobs",
-          "top_a"
-        ]
-      },
-      {
-        "id": "deepseek/deepseek-chat",
-        "name": "DeepSeek: DeepSeek V3",
-        "created": 1735241320,
-        "description": "DeepSeek-V3 is the latest model from the DeepSeek team, building upon the instruction following and coding abilities of the previous versions. Pre-trained on nearly 15 trillion tokens, the reported evaluations reveal that the model outperforms other open-source models and rivals leading closed-source models.\n\nFor model details, please visit [the DeepSeek-V3 repo](https://github.com/deepseek-ai/DeepSeek-V3) for more information, or see the [launch announcement](https://api-docs.deepseek.com/news/news1226).",
-        "context_length": 163840,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "DeepSeek",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.00000038",
-          "completion": "0.00000089",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 163840,
-          "max_completion_tokens": 163840,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "top_k",
-          "repetition_penalty",
-          "logit_bias",
-          "min_p",
-          "response_format",
-          "seed",
-          "logprobs",
-          "top_logprobs",
-          "tools",
-          "tool_choice",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "meta-llama/llama-4-maverick:free",
-        "name": "Meta: Llama 4 Maverick (free)",
-        "created": 1743881822,
-        "description": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward pass (400B total). It supports multilingual text and image input, and produces multilingual text and code output across 12 supported languages. Optimized for vision-language tasks, Maverick is instruction-tuned for assistant-like behavior, image reasoning, and general-purpose multimodal interaction.\n\nMaverick features early fusion for native multimodality and a 1 million token context window. It was trained on a curated mixture of public, licensed, and Meta-platform data, covering ~22 trillion tokens, with a knowledge cutoff in August 2024. Released on April 5, 2025 under the Llama 4 Community License, Maverick is suited for research and commercial applications requiring advanced multimodal understanding and high model throughput.",
-        "context_length": 256000,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Other",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 256000,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "structured_outputs",
-          "response_format",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logprobs",
-          "logit_bias",
-          "top_logprobs"
-        ]
-      },
-      {
-        "id": "meta-llama/llama-4-maverick",
-        "name": "Meta: Llama 4 Maverick",
-        "created": 1743881822,
-        "description": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward pass (400B total). It supports multilingual text and image input, and produces multilingual text and code output across 12 supported languages. Optimized for vision-language tasks, Maverick is instruction-tuned for assistant-like behavior, image reasoning, and general-purpose multimodal interaction.\n\nMaverick features early fusion for native multimodality and a 1 million token context window. It was trained on a curated mixture of public, licensed, and Meta-platform data, covering ~22 trillion tokens, with a knowledge cutoff in August 2024. Released on April 5, 2025 under the Llama 4 Community License, Maverick is suited for research and commercial applications requiring advanced multimodal understanding and high model throughput.",
-        "context_length": 1048576,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Other",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.00000017",
-          "completion": "0.0000006",
-          "request": "0",
-          "image": "0.0006684",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 1048576,
-          "max_completion_tokens": 16384,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logit_bias",
-          "tools",
-          "tool_choice",
-          "response_format",
-          "logprobs",
-          "top_logprobs",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "meta-llama/llama-4-scout:free",
-        "name": "Meta: Llama 4 Scout (free)",
-        "created": 1743881519,
-        "description": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input (text and image) and multilingual output (text and code) across 12 supported languages. Designed for assistant-style interaction and visual reasoning, Scout uses 16 experts per forward pass and features a context length of 10 million tokens, with a training corpus of ~40 trillion tokens.\n\nBuilt for high efficiency and local or commercial deployment, Llama 4 Scout incorporates early fusion for seamless modality integration. It is instruction-tuned for use in multilingual chat, captioning, and image understanding tasks. Released under the Llama 4 Community License, it was last trained on data up to August 2024 and launched publicly on April 5, 2025.",
-        "context_length": 512000,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Other",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 512000,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "structured_outputs",
-          "response_format",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logprobs",
-          "logit_bias",
-          "top_logprobs"
-        ]
-      },
-      {
-        "id": "meta-llama/llama-4-scout",
-        "name": "Meta: Llama 4 Scout",
-        "created": 1743881519,
-        "description": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input (text and image) and multilingual output (text and code) across 12 supported languages. Designed for assistant-style interaction and visual reasoning, Scout uses 16 experts per forward pass and features a context length of 10 million tokens, with a training corpus of ~40 trillion tokens.\n\nBuilt for high efficiency and local or commercial deployment, Llama 4 Scout incorporates early fusion for seamless modality integration. It is instruction-tuned for use in multilingual chat, captioning, and image understanding tasks. Released under the Llama 4 Community License, it was last trained on data up to August 2024 and launched publicly on April 5, 2025.",
-        "context_length": 1048576,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Other",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.00000008",
-          "completion": "0.0000003",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 1048576,
-          "max_completion_tokens": 1048576,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "presence_penalty",
-          "frequency_penalty",
-          "repetition_penalty",
-          "top_k",
-          "tools",
-          "tool_choice",
-          "stop",
-          "response_format",
-          "top_logprobs",
-          "logprobs",
-          "logit_bias",
-          "seed",
-          "min_p",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "openai/gpt-4o-mini-search-preview",
-        "name": "OpenAI: GPT-4o-mini Search Preview",
-        "created": 1741818122,
-        "description": "GPT-4o mini Search Preview is a specialized model for web search in Chat Completions. It is trained to understand and execute web search queries.",
-        "context_length": 128000,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "GPT",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.00000015",
-          "completion": "0.0000006",
-          "request": "0.0275",
-          "image": "0.000217",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 128000,
-          "max_completion_tokens": 16384,
-          "is_moderated": true
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "web_search_options",
-          "max_tokens",
-          "response_format",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "deepseek/deepseek-chat-v3-0324:free",
-        "name": "DeepSeek: DeepSeek V3 0324 (free)",
-        "created": 1742824755,
-        "description": "DeepSeek V3, a 685B-parameter, mixture-of-experts model, is the latest iteration of the flagship chat model family from the DeepSeek team.\n\nIt succeeds the [DeepSeek V3](/deepseek/deepseek-chat-v3) model and performs really well on a variety of tasks.",
-        "context_length": 163840,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "DeepSeek",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 163840,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logprobs",
-          "logit_bias",
-          "top_logprobs",
-          "top_a"
-        ]
-      },
-      {
-        "id": "google/gemini-2.5-flash-preview",
-        "name": "Google: Gemini 2.5 Flash Preview",
-        "created": 1744914667,
-        "description": "Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in \"thinking\" capabilities, enabling it to provide responses with greater accuracy and nuanced context handling. \n\nNote: This model is available in two variants: thinking and non-thinking. The output pricing varies significantly depending on whether the thinking capability is active. If you select the standard variant (without the \":thinking\" suffix), the model will explicitly avoid generating thinking tokens. \n\nTo utilize the thinking capability and receive thinking tokens, you must choose the \":thinking\" variant, which will then incur the higher thinking-output pricing. \n\nAdditionally, Gemini 2.5 Flash is configurable through the \"max tokens for reasoning\" parameter, as described in the documentation (https://openrouter.ai/docs/use-cases/reasoning-tokens#max-tokens-for-reasoning).",
-        "context_length": 1048576,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "image",
-            "text",
-            "file"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Gemini",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.00000015",
-          "completion": "0.0000006",
-          "request": "0",
-          "image": "0.0006192",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 1048576,
-          "max_completion_tokens": 65535,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "tools",
-          "tool_choice",
-          "stop",
-          "response_format",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "google/gemini-2.5-pro-exp-03-25",
-        "name": "Google: Gemini 2.5 Pro Experimental",
-        "created": 1742922099,
-        "description": "Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs “thinking” capabilities, enabling it to reason through responses with enhanced accuracy and nuanced context handling. Gemini 2.5 Pro achieves top-tier performance on multiple benchmarks, including first-place positioning on the LMArena leaderboard, reflecting superior human-preference alignment and complex problem-solving abilities.",
-        "context_length": 1000000,
-        "architecture": {
-          "modality": "text+image->text",
-          "input_modalities": [
-            "text",
-            "image",
-            "file"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Gemini",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 1000000,
-          "max_completion_tokens": 65535,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "tools",
-          "tool_choice",
-          "stop",
-          "seed",
-          "response_format",
-          "structured_outputs"
-        ]
-      },
-      {
-        "id": "qwen/qwen3-235b-a22b:free",
-        "name": "Qwen: Qwen3 235B A22B (free)",
-        "created": 1745875757,
-        "description": "Qwen3-235B-A22B is a 235B parameter mixture-of-experts (MoE) model developed by Qwen, activating 22B parameters per forward pass. It supports seamless switching between a \"thinking\" mode for complex reasoning, math, and code tasks, and a \"non-thinking\" mode for general conversational efficiency. The model demonstrates strong reasoning ability, multilingual support (100+ languages and dialects), advanced instruction-following, and agent tool-calling capabilities. It natively handles a 32K token context window and extends up to 131K tokens using YaRN-based scaling.",
-        "context_length": 40960,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Qwen3",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0",
-          "completion": "0",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 40960,
-          "max_completion_tokens": null,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "reasoning",
-          "include_reasoning",
-          "stop",
-          "frequency_penalty",
-          "presence_penalty",
-          "seed",
-          "top_k",
-          "min_p",
-          "repetition_penalty",
-          "logprobs",
-          "logit_bias",
-          "top_logprobs"
-        ]
-      },
-      {
-        "id": "qwen/qwen3-235b-a22b",
-        "name": "Qwen: Qwen3 235B A22B",
-        "created": 1745875757,
-        "description": "Qwen3-235B-A22B is a 235B parameter mixture-of-experts (MoE) model developed by Qwen, activating 22B parameters per forward pass. It supports seamless switching between a \"thinking\" mode for complex reasoning, math, and code tasks, and a \"non-thinking\" mode for general conversational efficiency. The model demonstrates strong reasoning ability, multilingual support (100+ languages and dialects), advanced instruction-following, and agent tool-calling capabilities. It natively handles a 32K token context window and extends up to 131K tokens using YaRN-based scaling.",
-        "context_length": 40960,
-        "architecture": {
-          "modality": "text->text",
-          "input_modalities": [
-            "text"
-          ],
-          "output_modalities": [
-            "text"
-          ],
-          "tokenizer": "Qwen3",
-          "instruct_type": null
-        },
-        "pricing": {
-          "prompt": "0.0000001",
-          "completion": "0.0000001",
-          "request": "0",
-          "image": "0",
-          "web_search": "0",
-          "internal_reasoning": "0"
-        },
-        "top_provider": {
-          "context_length": 40960,
-          "max_completion_tokens": 40960,
-          "is_moderated": false
-        },
-        "per_request_limits": null,
-        "supported_parameters": [
-          "max_tokens",
-          "temperature",
-          "top_p",
-          "reasoning",
-          "include_reasoning",
-          "presence_penalty",
-          "frequency_penalty",
-          "repetition_penalty",
-          "top_k",
-          "seed",
-          "stop",
-          "response_format",
-          "min_p",
-          "tools",
-          "tool_choice",
-          "logit_bias",
-          "structured_outputs",
-          "logprobs",
-          "top_logprobs"
-        ]
-      }
+  {
+    "id": "anthropic/claude-3.7-sonnet",
+    "name": "Anthropic: Claude 3.7 Sonnet",
+    "created": 1740422110,
+    "description": "Claude 3.7 Sonnet is an advanced large language model with improved reasoning, coding, and problem-solving capabilities. It introduces a hybrid reasoning approach, allowing users to choose between rapid responses and extended, step-by-step processing for complex tasks. The model demonstrates notable improvements in coding, particularly in front-end development and full-stack updates, and excels in agentic workflows, where it can autonomously navigate multi-step processes. \n\nClaude 3.7 Sonnet maintains performance parity with its predecessor in standard mode while offering an extended reasoning mode for enhanced accuracy in math, coding, and instruction-following tasks.\n\nRead more at the [blog post here](https://www.anthropic.com/news/claude-3-7-sonnet)",
+    "context_length": 200000,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Claude",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.000003",
+      "completion": "0.000015",
+      "request": "0",
+      "image": "0.0048",
+      "web_search": "0",
+      "internal_reasoning": "0",
+      "input_cache_read": "0.0000003",
+      "input_cache_write": "0.00000375"
+    },
+    "top_provider": {
+      "context_length": 200000,
+      "max_completion_tokens": 64000,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "tools",
+      "tool_choice",
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "top_k",
+      "stop"
+    ]
+  },
+  {
+    "id": "openai/gpt-4.1",
+    "name": "OpenAI: GPT-4.1",
+    "created": 1744651385,
+    "description": "GPT-4.1 is a flagship large language model optimized for advanced instruction following, real-world software engineering, and long-context reasoning. It supports a 1 million token context window and outperforms GPT-4o and GPT-4.5 across coding (54.6% SWE-bench Verified), instruction compliance (87.4% IFEval), and multimodal understanding benchmarks. It is tuned for precise code diffs, agent reliability, and high recall in large document contexts, making it ideal for agents, IDE tooling, and enterprise knowledge retrieval.",
+    "context_length": 1047576,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "GPT",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.000002",
+      "completion": "0.000008",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0",
+      "input_cache_read": "0.0000005"
+    },
+    "top_provider": {
+      "context_length": 1047576,
+      "max_completion_tokens": 32768,
+      "is_moderated": true
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "tools",
+      "tool_choice",
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "web_search_options",
+      "seed",
+      "logit_bias",
+      "logprobs",
+      "top_logprobs",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "openai/gpt-4.1-mini",
+    "name": "OpenAI: GPT-4.1 Mini",
+    "created": 1744651381,
+    "description": "GPT-4.1 Mini is a mid-sized model delivering performance competitive with GPT-4o at substantially lower latency and cost. It retains a 1 million token context window and scores 45.1% on hard instruction evals, 35.8% on MultiChallenge, and 84.1% on IFEval. Mini also shows strong coding ability (e.g., 31.6% on Aider’s polyglot diff benchmark) and vision understanding, making it suitable for interactive applications with tight performance constraints.",
+    "context_length": 1047576,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "GPT",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.0000004",
+      "completion": "0.0000016",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0",
+      "input_cache_read": "0.0000001"
+    },
+    "top_provider": {
+      "context_length": 1047576,
+      "max_completion_tokens": 32768,
+      "is_moderated": true
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "tools",
+      "tool_choice",
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "web_search_options",
+      "seed",
+      "logit_bias",
+      "logprobs",
+      "top_logprobs",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "qwen/qwen3-0.6b-04-28:free",
+    "name": "Qwen: Qwen3 0.6B (free)",
+    "created": 1746043526,
+    "description": "Qwen3-0.6B is a lightweight, 0.6 billion parameter language model in the Qwen3 series, offering support for both general-purpose dialogue and structured reasoning through a dual-mode (thinking/non-thinking) architecture. Despite its small size, it supports long contexts up to 32,768 tokens and provides multilingual, tool-use, and instruction-following capabilities.",
+    "context_length": 32000,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Qwen3",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 32000,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logit_bias"
+    ]
+  },
+  {
+    "id": "qwen/qwen3-1.7b:free",
+    "name": "Qwen: Qwen3 1.7B (free)",
+    "created": 1746031388,
+    "description": "Qwen3-1.7B is a compact, 1.7 billion parameter dense language model from the Qwen3 series, featuring dual-mode operation for both efficient dialogue (non-thinking) and advanced reasoning (thinking). Despite its small size, it supports 32,768-token contexts and delivers strong multilingual, instruction-following, and agentic capabilities, including tool use and structured output.",
+    "context_length": 32000,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Qwen3",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 32000,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logit_bias"
+    ]
+  },
+  {
+    "id": "qwen/qwen3-4b:free",
+    "name": "Qwen: Qwen3 4B (free)",
+    "created": 1746031104,
+    "description": "Qwen3-4B is a 4 billion parameter dense language model from the Qwen3 series, designed to support both general-purpose and reasoning-intensive tasks. It introduces a dual-mode architecture—thinking and non-thinking—allowing dynamic switching between high-precision logical reasoning and efficient dialogue generation. This makes it well-suited for multi-turn chat, instruction following, and complex agent workflows.",
+    "context_length": 128000,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Qwen3",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 128000,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logit_bias"
+    ]
+  },
+  {
+    "id": "google/gemini-2.0-flash-001",
+    "name": "Google: Gemini 2.0 Flash",
+    "created": 1738769413,
+    "description": "Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to [Gemini Flash 1.5](/google/gemini-flash-1.5), while maintaining quality on par with larger models like [Gemini Pro 1.5](/google/gemini-pro-1.5). It introduces notable enhancements in multimodal understanding, coding capabilities, complex instruction following, and function calling. These advancements come together to deliver more seamless and robust agentic experiences.",
+    "context_length": 1000000,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image",
+        "file"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Gemini",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.0000001",
+      "completion": "0.0000004",
+      "request": "0",
+      "image": "0.0000258",
+      "web_search": "0",
+      "internal_reasoning": "0",
+      "input_cache_read": "0.000000025",
+      "input_cache_write": "0.0000001833"
+    },
+    "top_provider": {
+      "context_length": 1000000,
+      "max_completion_tokens": 8192,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "tools",
+      "tool_choice",
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "deepseek/deepseek-r1:free",
+    "name": "DeepSeek: R1 (free)",
+    "created": 1737381095,
+    "description": "DeepSeek R1 is here: Performance on par with [OpenAI o1](/openai/o1), but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active in an inference pass.\n\nFully open-source model & [technical report](https://api-docs.deepseek.com/news/news250120).\n\nMIT licensed: Distill & commercialize freely!",
+    "context_length": 163840,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "DeepSeek",
+      "instruct_type": "deepseek-r1"
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 163840,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "reasoning",
+      "include_reasoning",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "top_a",
+      "logprobs"
+    ]
+  },
+  {
+    "id": "deepseek/deepseek-chat:free",
+    "name": "DeepSeek: DeepSeek V3 (free)",
+    "created": 1735241320,
+    "description": "DeepSeek-V3 is the latest model from the DeepSeek team, building upon the instruction following and coding abilities of the previous versions. Pre-trained on nearly 15 trillion tokens, the reported evaluations reveal that the model outperforms other open-source models and rivals leading closed-source models.\n\nFor model details, please visit [the DeepSeek-V3 repo](https://github.com/deepseek-ai/DeepSeek-V3) for more information, or see the [launch announcement](https://api-docs.deepseek.com/news/news1226).",
+    "context_length": 163840,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "DeepSeek",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 163840,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logprobs",
+      "logit_bias",
+      "top_logprobs",
+      "top_a"
+    ]
+  },
+  {
+    "id": "deepseek/deepseek-chat",
+    "name": "DeepSeek: DeepSeek V3",
+    "created": 1735241320,
+    "description": "DeepSeek-V3 is the latest model from the DeepSeek team, building upon the instruction following and coding abilities of the previous versions. Pre-trained on nearly 15 trillion tokens, the reported evaluations reveal that the model outperforms other open-source models and rivals leading closed-source models.\n\nFor model details, please visit [the DeepSeek-V3 repo](https://github.com/deepseek-ai/DeepSeek-V3) for more information, or see the [launch announcement](https://api-docs.deepseek.com/news/news1226).",
+    "context_length": 163840,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "DeepSeek",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.00000038",
+      "completion": "0.00000089",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 163840,
+      "max_completion_tokens": 163840,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "top_k",
+      "repetition_penalty",
+      "logit_bias",
+      "min_p",
+      "response_format",
+      "seed",
+      "logprobs",
+      "top_logprobs",
+      "tools",
+      "tool_choice",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "meta-llama/llama-4-maverick:free",
+    "name": "Meta: Llama 4 Maverick (free)",
+    "created": 1743881822,
+    "description": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward pass (400B total). It supports multilingual text and image input, and produces multilingual text and code output across 12 supported languages. Optimized for vision-language tasks, Maverick is instruction-tuned for assistant-like behavior, image reasoning, and general-purpose multimodal interaction.\n\nMaverick features early fusion for native multimodality and a 1 million token context window. It was trained on a curated mixture of public, licensed, and Meta-platform data, covering ~22 trillion tokens, with a knowledge cutoff in August 2024. Released on April 5, 2025 under the Llama 4 Community License, Maverick is suited for research and commercial applications requiring advanced multimodal understanding and high model throughput.",
+    "context_length": 256000,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Other",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 256000,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "structured_outputs",
+      "response_format",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logprobs",
+      "logit_bias",
+      "top_logprobs"
+    ]
+  },
+  {
+    "id": "meta-llama/llama-4-maverick",
+    "name": "Meta: Llama 4 Maverick",
+    "created": 1743881822,
+    "description": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward pass (400B total). It supports multilingual text and image input, and produces multilingual text and code output across 12 supported languages. Optimized for vision-language tasks, Maverick is instruction-tuned for assistant-like behavior, image reasoning, and general-purpose multimodal interaction.\n\nMaverick features early fusion for native multimodality and a 1 million token context window. It was trained on a curated mixture of public, licensed, and Meta-platform data, covering ~22 trillion tokens, with a knowledge cutoff in August 2024. Released on April 5, 2025 under the Llama 4 Community License, Maverick is suited for research and commercial applications requiring advanced multimodal understanding and high model throughput.",
+    "context_length": 1048576,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Other",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.00000017",
+      "completion": "0.0000006",
+      "request": "0",
+      "image": "0.0006684",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 1048576,
+      "max_completion_tokens": 16384,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logit_bias",
+      "tools",
+      "tool_choice",
+      "response_format",
+      "logprobs",
+      "top_logprobs",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "meta-llama/llama-4-scout:free",
+    "name": "Meta: Llama 4 Scout (free)",
+    "created": 1743881519,
+    "description": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input (text and image) and multilingual output (text and code) across 12 supported languages. Designed for assistant-style interaction and visual reasoning, Scout uses 16 experts per forward pass and features a context length of 10 million tokens, with a training corpus of ~40 trillion tokens.\n\nBuilt for high efficiency and local or commercial deployment, Llama 4 Scout incorporates early fusion for seamless modality integration. It is instruction-tuned for use in multilingual chat, captioning, and image understanding tasks. Released under the Llama 4 Community License, it was last trained on data up to August 2024 and launched publicly on April 5, 2025.",
+    "context_length": 512000,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Other",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 512000,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "structured_outputs",
+      "response_format",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logprobs",
+      "logit_bias",
+      "top_logprobs"
+    ]
+  },
+  {
+    "id": "meta-llama/llama-4-scout",
+    "name": "Meta: Llama 4 Scout",
+    "created": 1743881519,
+    "description": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input (text and image) and multilingual output (text and code) across 12 supported languages. Designed for assistant-style interaction and visual reasoning, Scout uses 16 experts per forward pass and features a context length of 10 million tokens, with a training corpus of ~40 trillion tokens.\n\nBuilt for high efficiency and local or commercial deployment, Llama 4 Scout incorporates early fusion for seamless modality integration. It is instruction-tuned for use in multilingual chat, captioning, and image understanding tasks. Released under the Llama 4 Community License, it was last trained on data up to August 2024 and launched publicly on April 5, 2025.",
+    "context_length": 1048576,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Other",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.00000008",
+      "completion": "0.0000003",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 1048576,
+      "max_completion_tokens": 1048576,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "presence_penalty",
+      "frequency_penalty",
+      "repetition_penalty",
+      "top_k",
+      "tools",
+      "tool_choice",
+      "stop",
+      "response_format",
+      "top_logprobs",
+      "logprobs",
+      "logit_bias",
+      "seed",
+      "min_p",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "openai/gpt-4o-mini-search-preview",
+    "name": "OpenAI: GPT-4o-mini Search Preview",
+    "created": 1741818122,
+    "description": "GPT-4o mini Search Preview is a specialized model for web search in Chat Completions. It is trained to understand and execute web search queries.",
+    "context_length": 128000,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "GPT",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.00000015",
+      "completion": "0.0000006",
+      "request": "0.0275",
+      "image": "0.000217",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 128000,
+      "max_completion_tokens": 16384,
+      "is_moderated": true
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "web_search_options",
+      "max_tokens",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "deepseek/deepseek-chat-v3-0324:free",
+    "name": "DeepSeek: DeepSeek V3 0324 (free)",
+    "created": 1742824755,
+    "description": "DeepSeek V3, a 685B-parameter, mixture-of-experts model, is the latest iteration of the flagship chat model family from the DeepSeek team.\n\nIt succeeds the [DeepSeek V3](/deepseek/deepseek-chat-v3) model and performs really well on a variety of tasks.",
+    "context_length": 163840,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "DeepSeek",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 163840,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logprobs",
+      "logit_bias",
+      "top_logprobs",
+      "top_a"
+    ]
+  },
+  {
+    "id": "google/gemini-2.5-flash-preview",
+    "name": "Google: Gemini 2.5 Flash Preview",
+    "created": 1744914667,
+    "description": "Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in \"thinking\" capabilities, enabling it to provide responses with greater accuracy and nuanced context handling. \n\nNote: This model is available in two variants: thinking and non-thinking. The output pricing varies significantly depending on whether the thinking capability is active. If you select the standard variant (without the \":thinking\" suffix), the model will explicitly avoid generating thinking tokens. \n\nTo utilize the thinking capability and receive thinking tokens, you must choose the \":thinking\" variant, which will then incur the higher thinking-output pricing. \n\nAdditionally, Gemini 2.5 Flash is configurable through the \"max tokens for reasoning\" parameter, as described in the documentation (https://openrouter.ai/docs/use-cases/reasoning-tokens#max-tokens-for-reasoning).",
+    "context_length": 1048576,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "image",
+        "text",
+        "file"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Gemini",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.00000015",
+      "completion": "0.0000006",
+      "request": "0",
+      "image": "0.0006192",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 1048576,
+      "max_completion_tokens": 65535,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "tools",
+      "tool_choice",
+      "stop",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "google/gemini-2.5-pro-exp-03-25",
+    "name": "Google: Gemini 2.5 Pro Experimental",
+    "created": 1742922099,
+    "description": "Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs “thinking” capabilities, enabling it to reason through responses with enhanced accuracy and nuanced context handling. Gemini 2.5 Pro achieves top-tier performance on multiple benchmarks, including first-place positioning on the LMArena leaderboard, reflecting superior human-preference alignment and complex problem-solving abilities.",
+    "context_length": 1000000,
+    "architecture": {
+      "modality": "text+image->text",
+      "input_modalities": [
+        "text",
+        "image",
+        "file"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Gemini",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 1000000,
+      "max_completion_tokens": 65535,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "tools",
+      "tool_choice",
+      "stop",
+      "seed",
+      "response_format",
+      "structured_outputs"
+    ]
+  },
+  {
+    "id": "qwen/qwen3-235b-a22b:free",
+    "name": "Qwen: Qwen3 235B A22B (free)",
+    "created": 1745875757,
+    "description": "Qwen3-235B-A22B is a 235B parameter mixture-of-experts (MoE) model developed by Qwen, activating 22B parameters per forward pass. It supports seamless switching between a \"thinking\" mode for complex reasoning, math, and code tasks, and a \"non-thinking\" mode for general conversational efficiency. The model demonstrates strong reasoning ability, multilingual support (100+ languages and dialects), advanced instruction-following, and agent tool-calling capabilities. It natively handles a 32K token context window and extends up to 131K tokens using YaRN-based scaling.",
+    "context_length": 40960,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Qwen3",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0",
+      "completion": "0",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 40960,
+      "max_completion_tokens": null,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "stop",
+      "frequency_penalty",
+      "presence_penalty",
+      "seed",
+      "top_k",
+      "min_p",
+      "repetition_penalty",
+      "logprobs",
+      "logit_bias",
+      "top_logprobs"
+    ]
+  },
+  {
+    "id": "qwen/qwen3-235b-a22b",
+    "name": "Qwen: Qwen3 235B A22B",
+    "created": 1745875757,
+    "description": "Qwen3-235B-A22B is a 235B parameter mixture-of-experts (MoE) model developed by Qwen, activating 22B parameters per forward pass. It supports seamless switching between a \"thinking\" mode for complex reasoning, math, and code tasks, and a \"non-thinking\" mode for general conversational efficiency. The model demonstrates strong reasoning ability, multilingual support (100+ languages and dialects), advanced instruction-following, and agent tool-calling capabilities. It natively handles a 32K token context window and extends up to 131K tokens using YaRN-based scaling.",
+    "context_length": 40960,
+    "architecture": {
+      "modality": "text->text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "tokenizer": "Qwen3",
+      "instruct_type": null
+    },
+    "pricing": {
+      "prompt": "0.0000001",
+      "completion": "0.0000001",
+      "request": "0",
+      "image": "0",
+      "web_search": "0",
+      "internal_reasoning": "0"
+    },
+    "top_provider": {
+      "context_length": 40960,
+      "max_completion_tokens": 40960,
+      "is_moderated": false
+    },
+    "per_request_limits": null,
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "reasoning",
+      "include_reasoning",
+      "presence_penalty",
+      "frequency_penalty",
+      "repetition_penalty",
+      "top_k",
+      "seed",
+      "stop",
+      "response_format",
+      "min_p",
+      "tools",
+      "tool_choice",
+      "logit_bias",
+      "structured_outputs",
+      "logprobs",
+      "top_logprobs"
+    ]
+  }
 ]
