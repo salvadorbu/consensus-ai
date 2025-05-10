@@ -82,25 +82,31 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (!activeChatId) return;
       // Find the active chat in local state
       const localActiveChat = chatSessions.find(chat => chat.id === activeChatId);
-      // Only fetch if there are no messages in local state
+      // Only fetch and overwrite if there are no messages in local state
       if (localActiveChat && localActiveChat.messages && localActiveChat.messages.length > 0) return;
       setLoading(true);
       try {
         const chatWithMessages = await getChat(activeChatId);
-        setChatSessions(prev => prev.map(chat =>
-          chat.id === activeChatId
-            ? {
-                ...chat,
-                messages: chatWithMessages.messages.map(msg => ({
-                  role: msg.role,
-                  content: msg.content,
-                  timestamp: new Date(msg.created_at),
-                  model: msg.model,
-                })),
-                lastUpdated: new Date(chatWithMessages.updated_at),
-              }
-            : chat
-        ));
+        // Only overwrite messages if local messages are still empty (prevents overwriting optimistic messages)
+        setChatSessions(prev => prev.map(chat => {
+          if (chat.id === activeChatId) {
+            if (chat.messages && chat.messages.length > 0) {
+              // Don't overwrite optimistic messages
+              return chat;
+            }
+            return {
+              ...chat,
+              messages: chatWithMessages.messages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                timestamp: new Date(msg.created_at),
+                model: msg.model,
+              })),
+              lastUpdated: new Date(chatWithMessages.updated_at),
+            };
+          }
+          return chat;
+        }));
         // Set selected model to the model of the latest message, if any
         if (chatWithMessages.messages && chatWithMessages.messages.length > 0) {
           const latestMsg = chatWithMessages.messages[chatWithMessages.messages.length - 1];
