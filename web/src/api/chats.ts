@@ -40,6 +40,7 @@ export interface ChatUpdateDto {
 export interface UserMessageCreateDto {
   content: string;
   model?: string; // Optional override of the chat's default_model
+  use_consensus?: boolean;
 }
 
 // -----------------------------------------------------------------------------

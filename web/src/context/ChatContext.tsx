@@ -1,37 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ChatSession, Message, AIModel } from '../types';
-
-// Define available AI models
-const AVAILABLE_MODELS: AIModel[] = [
-  {
-    id: 'gpt-4',
-    name: 'GPT-4',
-    description: 'Advanced reasoning and comprehension'
-  },
-  {
-    id: 'claude-3',
-    name: 'Claude 3',
-    description: 'Balanced between speed and quality'
-  },
-  {
-    id: 'llama-3',
-    name: 'Llama 3',
-    description: 'Fast responses with good accuracy'
-  },
-  {
-    id: 'gemini-pro',
-    name: 'Gemini Pro',
-    description: 'Multimodal capabilities'
-  }
-];
-
-// Sample AI responses for demo purposes
-const SAMPLE_RESPONSES: Record<string, string> = {
-  'gpt-4': "I'm simulating a GPT-4 response. GPT-4 is known for nuanced understanding and logical reasoning.",
-  'claude-3': "This is a simulated Claude 3 response. Claude is known for thoughtful, detailed answers with good understanding of context.",
-  'llama-3': "Simulating Llama 3 here. Llama models are known for efficiency and strong performance across various tasks.",
-  'gemini-pro': "This is a simulated Gemini Pro response. Gemini excels at multimodal tasks and provides comprehensive answers.",
-};
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ChatSession, AIModel } from '../types';
+import type { MessageRole } from '../types/index';
+import {
+  listChats,
+  createChat as apiCreateChat,
+  getChat,
+  deleteChat as apiDeleteChat,
+  sendMessage as apiSendMessage,
+} from '../api/chats';
 
 // Define context interface
 interface ChatContextType {
@@ -44,7 +20,15 @@ interface ChatContextType {
   deleteChat: (chatId: string) => void;
   sendMessage: (content: string, useConsensus?: boolean) => void;
   setSelectedModel: (model: AIModel) => void;
+  loading: boolean;
 }
+
+// Helper: loading state for models
+const ModelsNotLoadedFallback: AIModel = {
+  id: '',
+  name: 'Loading...',
+  description: 'Loading models...'
+};
 
 // Create context
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -53,23 +37,107 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<AIModel>(AVAILABLE_MODELS[0]);
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(ModelsNotLoadedFallback);
+  const [loading, setLoading] = useState(false);
 
-  // Generate unique ID
-  const generateId = () => Math.random().toString(36).substring(2, 9);
+  // Load available models from models.json
+  useEffect(() => {
+    fetch('/src/data/models.json')
+      .then(res => res.json())
+      .then(data => {
+        setAvailableModels(data);
+        // Prefer anthropic/claude-3.7-sonnet if present
+        const defaultModel = data.find((m: AIModel) => m.id === 'anthropic/claude-3.7-sonnet') || data[0];
+        if (defaultModel) setSelectedModel(defaultModel);
+      })
+      .catch(() => setAvailableModels([]));
+  }, []);
 
-  // Start a new chat
-  const startNewChat = () => {
-    const newChatId = generateId();
-    const newChat: ChatSession = {
-      id: newChatId,
-      title: 'New Conversation',
-      messages: [],
-      lastUpdated: new Date()
+  // Fetch chats on mount
+  useEffect(() => {
+    const fetchChats = async () => {
+      setLoading(true);
+      try {
+        const apiChats = await listChats();
+        // Map API chats to ChatSession[] (empty messages initially)
+        setChatSessions(apiChats.map(chat => ({
+          id: chat.id,
+          title: chat.name,
+          messages: [],
+          lastUpdated: new Date(chat.updated_at),
+        })));
+      } catch (err) {
+        console.error('Failed to fetch chats:', err);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchChats();
+  }, []);
 
-    setChatSessions(prev => [newChat, ...prev]);
-    setActiveChatId(newChatId);
+  // When a chat is selected, fetch its messages
+  useEffect(() => {
+    const fetchChatMessages = async () => {
+      if (!activeChatId) return;
+      // Find the active chat in local state
+      const localActiveChat = chatSessions.find(chat => chat.id === activeChatId);
+      // Only fetch if there are no messages in local state
+      if (localActiveChat && localActiveChat.messages && localActiveChat.messages.length > 0) return;
+      setLoading(true);
+      try {
+        const chatWithMessages = await getChat(activeChatId);
+        setChatSessions(prev => prev.map(chat =>
+          chat.id === activeChatId
+            ? {
+                ...chat,
+                messages: chatWithMessages.messages.map(msg => ({
+                  role: msg.role,
+                  content: msg.content,
+                  timestamp: new Date(msg.created_at),
+                  model: msg.model,
+                })),
+                lastUpdated: new Date(chatWithMessages.updated_at),
+              }
+            : chat
+        ));
+        // Set selected model to the model of the latest message, if any
+        if (chatWithMessages.messages && chatWithMessages.messages.length > 0) {
+          const latestMsg = chatWithMessages.messages[chatWithMessages.messages.length - 1];
+          if (latestMsg.model && availableModels.length > 0) {
+            const foundModel = availableModels.find(m => m.id === latestMsg.model);
+            if (foundModel) setSelectedModel(foundModel);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch chat messages:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChatMessages();
+  }, [activeChatId, chatSessions]);
+
+
+  // Start a new chat using the backend API
+  const startNewChat = async () => {
+    try {
+      if (!selectedModel || !selectedModel.id) return; // Guard: don't run if not ready
+      const created = await apiCreateChat({
+        name: 'New Conversation',
+        default_model: selectedModel.id,
+      });
+      const newChat: ChatSession = {
+        id: created.id,
+        title: created.name,
+        messages: [],
+        lastUpdated: new Date(created.created_at),
+      };
+      setChatSessions(prev => [newChat, ...prev]);
+      setActiveChatId(created.id);
+    } catch (err) {
+      console.error('Failed to create chat:', err);
+    }
   };
 
   // Select a chat
@@ -77,127 +145,128 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setActiveChatId(chatId);
   };
 
-  // Delete a chat
-  const deleteChat = (chatId: string) => {
-    setChatSessions(prev => prev.filter(chat => chat.id !== chatId));
-    
-    // If active chat is deleted, set active to null or another chat
-    if (activeChatId === chatId) {
-      const remainingChats = chatSessions.filter(chat => chat.id !== chatId);
-      setActiveChatId(remainingChats.length > 0 ? remainingChats[0].id : null);
+  // Delete a chat using the backend API
+  const deleteChat = async (chatId: string) => {
+    try {
+      await apiDeleteChat(chatId);
+      setChatSessions(prev => prev.filter(chat => chat.id !== chatId));
+      // If active chat is deleted, set active to null or another chat
+      if (activeChatId === chatId) {
+        const remainingChats = chatSessions.filter(chat => chat.id !== chatId);
+        setActiveChatId(remainingChats.length > 0 ? remainingChats[0].id : null);
+      }
+    } catch (err) {
+      console.error('Failed to delete chat:', err);
     }
   };
 
-  // Send a message
-  const sendMessage = (content: string, useConsensus = false) => {
-    if (!activeChatId) return;
-
-    const userMessage: Message = {
-      role: 'user',
+  // Send a message using the backend API
+  const sendMessage = async (content: string, useConsensus?: boolean) => {
+    let chatId = activeChatId;
+    // If no active chat, create one first
+    if (!selectedModel || !selectedModel.id) return;
+    let userMsg = {
+      role: 'user' as MessageRole,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      model: selectedModel.id,
     };
-
-    // Update chat session with user message
-    setChatSessions(prev => 
-      prev.map(chat => {
-        if (chat.id === activeChatId) {
-          // Update chat title if it's the first message
-          const isFirstMessage = chat.messages.length === 0;
-          const newTitle = isFirstMessage ? truncateTitle(content) : chat.title;
-          
-          return {
-            ...chat,
-            title: newTitle,
-            messages: [...chat.messages, userMessage],
-            lastUpdated: new Date()
-          };
-        }
-        return chat;
-      })
-    );
-
-    // Simulate AI response
-    setTimeout(() => {
-      if (useConsensus) {
-        // Generate multiple responses and then a consensus
-        const modelResponses: Message[] = [];
-        
-        // Add individual model responses
-        AVAILABLE_MODELS.forEach(model => {
-          modelResponses.push({
-            role: 'assistant',
-            content: SAMPLE_RESPONSES[model.id] || `Response from ${model.name}`,
-            timestamp: new Date(),
-            model: model.name
-          });
+    if (!chatId) {
+      try {
+        const created = await apiCreateChat({
+          name: 'New Conversation',
+          default_model: selectedModel.id,
         });
-        
-        // Add consensus response
-        const consensusResponse: Message = {
-          role: 'assistant',
-          content: "This is a consensus response that combines insights from multiple AI models. The consensus approach helps eliminate biases and provides more reliable information.",
-          timestamp: new Date(),
-          model: "Consensus Engine",
-          isConsensus: true
+        const newChat: ChatSession = {
+          id: created.id,
+          title: created.name,
+          messages: [userMsg], // Add the optimistic message directly
+          lastUpdated: new Date(created.created_at),
         };
-        
-        // Update chat with all responses
-        setChatSessions(prev => 
-          prev.map(chat => {
-            if (chat.id === activeChatId) {
-              return {
-                ...chat,
-                messages: [...chat.messages, ...modelResponses, consensusResponse],
-                lastUpdated: new Date()
-              };
-            }
-            return chat;
-          })
-        );
-      } else {
-        // Just respond with selected model
-        const aiResponse: Message = {
-          role: 'assistant',
-          content: SAMPLE_RESPONSES[selectedModel.id] || `Response from ${selectedModel.name}`,
-          timestamp: new Date(),
-          model: selectedModel.name
-        };
-        
-        // Update chat with AI response
-        setChatSessions(prev => 
-          prev.map(chat => {
-            if (chat.id === activeChatId) {
-              return {
-                ...chat,
-                messages: [...chat.messages, aiResponse],
-                lastUpdated: new Date()
-              };
-            }
-            return chat;
-          })
-        );
+        setChatSessions(prev => [newChat, ...prev]);
+        setActiveChatId(created.id);
+        chatId = created.id;
+      } catch (err) {
+        console.error('Failed to create chat:', err);
+        return;
       }
-    }, 1000);
+    } else {
+      // 1. Optimistically add the user's message for existing chats
+      setChatSessions(prev =>
+        prev.map(chat => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: [...chat.messages, userMsg],
+              lastUpdated: new Date(),
+            };
+          }
+          return chat;
+        })
+      );
+    }
+    try {
+      setLoading(true);
+      const apiMsg = await apiSendMessage(chatId, {
+        content,
+        model: selectedModel.id,
+        ...(useConsensus !== undefined ? { use_consensus: useConsensus } : {}),
+      });
+      // 2. Add the bot's response
+      setChatSessions(prev =>
+        prev.map(chat => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: [...chat.messages, {
+                role: apiMsg.role,
+                content: apiMsg.content,
+                timestamp: new Date(apiMsg.created_at),
+                model: apiMsg.model,
+              }],
+              lastUpdated: new Date(),
+            };
+          }
+          return chat;
+        })
+      );
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      // Optionally handle error: remove the user's message or show error
+      setChatSessions(prev =>
+        prev.map(chat => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: chat.messages.filter(m => !(m.role === 'user' && m.content === content)),
+              lastUpdated: chat.lastUpdated,
+            };
+          }
+          return chat;
+        })
+      );
+      console.error('Failed to send message:', err);
+    }
   };
 
-  // Helper to truncate message for chat title
-  const truncateTitle = (message: string, maxLength = 30) => {
-    if (message.length <= maxLength) return message;
-    return message.substring(0, maxLength) + '...';
-  };
-
+  // Build context value and render provider
   const contextValue: ChatContextType = {
     chatSessions,
     activeChatId,
     selectedModel,
-    availableModels: AVAILABLE_MODELS,
+    availableModels,
     startNewChat,
     selectChat,
     deleteChat,
     sendMessage,
-    setSelectedModel
+    setSelectedModel,
+    loading,
   };
+
+  if (!selectedModel || selectedModel.id === '') {
+    return <div className="flex items-center justify-center h-full text-gray-400">Loading models...</div>;
+  }
 
   return (
     <ChatContext.Provider value={contextValue}>

@@ -52,7 +52,12 @@ async def list_chats(session: AsyncSession = Depends(get_session)):
 
 @router.get("/{chat_id}", response_model=ChatWithMessages)
 async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
-    """Return chat metadata **plus** its messages (ascending by time)."""
+    """
+    Return chat metadata **plus** its messages (ascending by time).
+
+    NOTE: Never return ChatWithMessages directly from an ORM object, as this can cause
+    lazy loading errors in async SQLAlchemy. Always explicitly set the messages attribute.
+    """
     chat = await session.get(Chat, chat_id)
     if chat is None:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -63,8 +68,14 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
     )
     messages = result.scalars().all()
 
-    chat_dto = ChatWithMessages.model_validate(chat)
-    chat_dto.messages = [MessageRead.model_validate(m) for m in messages]
+    chat_dto = ChatWithMessages(
+        id=chat.id,
+        name=chat.name,
+        default_model=chat.default_model,
+        created_at=chat.created_at,
+        updated_at=chat.updated_at,
+        messages=[MessageRead.model_validate(m) for m in messages]
+    )
     return chat_dto
 
 
@@ -139,6 +150,12 @@ async def send_message(
 
     # 3) Call the model (potentially different from default)
     model_to_use = msg_in.model or chat.default_model
+
+    # Handle consensus mode (for now, just log it)
+    if getattr(msg_in, "use_consensus", False):
+        logger.info(f"Consensus mode enabled for chat {chat_id}")
+        # If consensus logic is needed, add here
+
     assistant_content = await _call_agent(model_to_use, messages_payload) or ""
 
     # 4) Persist assistant reply

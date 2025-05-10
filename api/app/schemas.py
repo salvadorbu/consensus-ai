@@ -60,6 +60,10 @@ class UserMessageCreate(BaseModel):
         description="Optional model name to use for the *assistant* response."
         "If omitted, the chat's default model is used.",
     )
+    use_consensus: Optional[bool] = Field(
+        False,
+        description="Whether to use consensus mode for the assistant response."
+    )
 
 
 class MessageRead(BaseModel):
@@ -82,9 +86,7 @@ class MessageRead(BaseModel):
 
 
 class ChatWithMessages(ChatRead):
-    """Chat including its associated messages (ordered by timestamp)."""
-
+    """Chat including its associated messages (ordered by timestamp).
+    NOTE: Do NOT use from_attributes here, as messages must always be set explicitly in the endpoint to avoid async SQLAlchemy lazy loading errors.
+    """
     messages: List[MessageRead] = []
-
-    class Config:
-        from_attributes = True

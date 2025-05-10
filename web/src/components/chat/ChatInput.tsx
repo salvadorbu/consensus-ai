@@ -7,12 +7,11 @@ import { useChatContext } from '../../context/ChatContext';
 const ChatInput: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [useConsensus, setUseConsensus] = useState(false);
-  const { sendMessage, activeChatId, selectedModel } = useChatContext();
+  const { sendMessage } = useChatContext();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (inputValue.trim() && activeChatId) {
+    if (inputValue.trim()) {
       sendMessage(inputValue, useConsensus);
       setInputValue('');
     }
