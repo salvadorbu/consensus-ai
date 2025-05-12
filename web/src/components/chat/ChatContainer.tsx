@@ -33,7 +33,7 @@ const ChatContainer: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
                   <h3 className="font-medium mb-2">Ask any question</h3>
-                  <p className="text-sm text-gray-400">Get immediate answers from multiple AI models</p>
+                  <p className="text-sm text-gray-400">Get different AI models to collaborate on tasks</p>
                 </div>
                 <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
                   <h3 className="font-medium mb-2">Compare responses</h3>

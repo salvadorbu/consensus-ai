@@ -12,15 +12,10 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_session
-from ..models import Chat, Message
-from ..schemas import (
-    ChatCreate,
-    ChatRead,
-    ChatUpdate,
-    ChatWithMessages,
-    MessageRead,
-    UserMessageCreate,
-)
+from ..models.chat import Chat
+from ..models.message import Message
+from ..schemas.chat import ChatCreate, ChatRead, ChatUpdate, ChatWithMessages
+from ..schemas.message import MessageRead, UserMessageCreate
 from ..agent import Agent
 
 logger = logging.getLogger(__name__)

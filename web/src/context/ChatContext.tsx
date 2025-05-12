@@ -77,13 +77,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // When a chat is selected, fetch its messages
+  // Track which chatIds have been fetched to avoid repeated fetching for empty chats
+  const fetchedChatIdsRef = React.useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const fetchChatMessages = async () => {
       if (!activeChatId) return;
+      // Only fetch if we haven't fetched this chatId yet
+      if (fetchedChatIdsRef.current.has(activeChatId)) return;
       // Find the active chat in local state
       const localActiveChat = chatSessions.find(chat => chat.id === activeChatId);
       // Only fetch and overwrite if there are no messages in local state
-      if (localActiveChat && localActiveChat.messages && localActiveChat.messages.length > 0) return;
+      if (localActiveChat && localActiveChat.messages && localActiveChat.messages.length > 0) {
+        fetchedChatIdsRef.current.add(activeChatId); // Mark as fetched if already has messages
+        return;
+      }
       setLoading(true);
       try {
         const chatWithMessages = await getChat(activeChatId);
@@ -107,6 +115,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
           return chat;
         }));
+        fetchedChatIdsRef.current.add(activeChatId); // Mark as fetched after successful fetch
         // Set selected model to the model of the latest message, if any
         if (chatWithMessages.messages && chatWithMessages.messages.length > 0) {
           const latestMsg = chatWithMessages.messages[chatWithMessages.messages.length - 1];
@@ -123,6 +132,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     fetchChatMessages();
   }, [activeChatId, chatSessions]);
+
+  // Reset fetched chatIds when chatSessions are reloaded (e.g., on logout/login)
+  useEffect(() => {
+    fetchedChatIdsRef.current.clear();
+  }, [chatSessions.length]);
+
 
 
   // Start a new chat using the backend API

@@ -12,10 +12,10 @@ const ConsensusButton: React.FC<ConsensusButtonProps> = ({ active, onClick }) =>
       type="button"
       onClick={onClick}
       className={`
-        flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all duration-200
+        flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all duration-200 border
         ${active 
-          ? 'bg-purple-600/30 text-purple-300 border border-purple-500/30' 
-          : 'hover:bg-gray-700 text-gray-400'
+          ? 'bg-purple-600/30 text-purple-300 border-purple-500/30' 
+          : 'hover:bg-gray-700 text-gray-400 border-transparent'
         }
       `}
       title="Generate consensus response from multiple models"

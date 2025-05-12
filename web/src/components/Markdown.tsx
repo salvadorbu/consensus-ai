@@ -2,6 +2,9 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 // If you need extended Markdown features (tables, strikethrough, etc.)
 // install remark-gfm (`npm i remark-gfm`) and uncomment the next line.
 // import remarkGfm from 'remark-gfm';
@@ -23,7 +26,8 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className }) => {
   return (
     <div className={`prose prose-invert max-w-none ${className || ''}`}>
       <ReactMarkdown
-        // remarkPlugins={[remarkGfm]} // enable once remark-gfm is installed
+        remarkPlugins={[remarkMath /* , remarkGfm */]}
+        rehypePlugins={[rehypeKatex]}
         components={{
           // Custom renderer for code blocks & inline code
           code({ inline, className, children, ...props }: any) {
