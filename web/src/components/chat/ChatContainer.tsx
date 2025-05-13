@@ -3,7 +3,11 @@ import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
 import { useChatContext } from '../../context/ChatContext';
 
-const ChatContainer: React.FC = () => {
+interface ChatContainerProps {
+  onOpenSettings: () => void;
+}
+
+const ChatContainer: React.FC<ChatContainerProps> = ({ onOpenSettings }) => {
   const { activeChatId, chatSessions } = useChatContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +52,7 @@ const ChatContainer: React.FC = () => {
       </div>
 
       <div className="p-4 md:p-6 border-t border-gray-800">
-        <ChatInput />
+        <ChatInput onOpenSettings={onOpenSettings} />
       </div>
     </div>
   );

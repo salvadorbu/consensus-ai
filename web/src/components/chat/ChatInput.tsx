@@ -4,7 +4,11 @@ import ModelSelector from './ModelSelector';
 import ConsensusButton from './ConsensusButton';
 import { useChatContext } from '../../context/ChatContext';
 
-const ChatInput: React.FC = () => {
+interface ChatInputProps {
+  onOpenSettings?: () => void;
+}
+
+const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
   const [inputValue, setInputValue] = useState('');
   const [useConsensus, setUseConsensus] = useState(false);
   const { sendMessage } = useChatContext();
@@ -62,6 +66,8 @@ const ChatInput: React.FC = () => {
               <button 
                 type="button" 
                 className="p-1.5 rounded-md hover:bg-gray-700 transition-colors"
+                onClick={onOpenSettings}
+                aria-label="Open settings"
               >
                 <Settings size={16} />
               </button>

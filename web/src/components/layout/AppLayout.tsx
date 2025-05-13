@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../sidebar/Sidebar';
 import ChatContainer from '../chat/ChatContainer';
 import { Menu } from 'lucide-react';
+import SettingsModal from '../settings/SettingsModal';
 
 const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Initialize sidebar state based on screen size
   useEffect(() => {
@@ -65,7 +67,7 @@ const AppLayout: React.FC = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ChatContainer />
+        <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
       </div>
 
       {/* Overlay for mobile sidebar */}
@@ -75,6 +77,8 @@ const AppLayout: React.FC = () => {
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 };
