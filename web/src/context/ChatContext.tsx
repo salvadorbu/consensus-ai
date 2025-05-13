@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { ChatSession, AIModel } from '../types';
 import type { MessageRole } from '../types/index';
 import {
@@ -8,6 +14,11 @@ import {
   deleteChat as apiDeleteChat,
   sendMessage as apiSendMessage,
 } from '../api/chats';
+import {
+  createChannel as apiCreateChannel,
+  getChannelStatus,
+} from '../api/channels';
+import { useConsensusSettings } from './ConsensusContext';
 
 // Define context interface
 interface ChatContextType {
@@ -40,6 +51,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<AIModel>(ModelsNotLoadedFallback);
   const [loading, setLoading] = useState(false);
+
+  const { guidingModel, participantModels } = useConsensusSettings();
 
   // Load available models from models.json
   useEffect(() => {
@@ -138,8 +151,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchedChatIdsRef.current.clear();
   }, [chatSessions.length]);
 
-
-
   // Start a new chat using the backend API
   const startNewChat = async () => {
     try {
@@ -226,12 +237,91 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         })
       );
     }
+
+    // If useConsensus flag is set, send through channels API instead
+    if (useConsensus) {
+      // Optimistically add placeholder assistant message
+      const placeholderMsg = {
+        role: 'assistant' as MessageRole,
+        content: 'Running consensus...',
+        timestamp: new Date(),
+        model: 'consensus',
+        isConsensus: true,
+      };
+      setChatSessions(prev =>
+        prev.map(chat => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: [...chat.messages, placeholderMsg],
+            };
+          }
+          return chat;
+        })
+      );
+
+      try {
+        const channelResp = await apiCreateChannel({
+          task: content,
+          guiding_model: guidingModel?.id || selectedModel.id,
+          participant_models: participantModels
+            .filter((m): m is AIModel => m !== null)
+            .map(m => m.id),
+          max_rounds: 6,
+        });
+        const channelId = channelResp.channel_id;
+
+        // Poll for status
+        const pollInterval = 3000; // 3 seconds
+
+        const poll = async () => {
+          try {
+            const status = await getChannelStatus(channelId);
+            if (status.status === 'finished' || status.status === 'error') {
+              // Update placeholder message with final answer or error
+              setChatSessions(prev =>
+                prev.map(chat => {
+                  if (chat.id === chatId) {
+                    return {
+                      ...chat,
+                      messages: chat.messages.map(msg =>
+                        msg === placeholderMsg
+                          ? {
+                              ...msg,
+                              content:
+                                status.status === 'finished'
+                                  ? status.answer || 'No answer.'
+                                  : `Consensus error: ${status.error ?? 'unknown'}`,
+                            }
+                          : msg
+                      ),
+                    };
+                  }
+                  return chat;
+                })
+              );
+              clearInterval(intervalId);
+            }
+          } catch (err) {
+            console.error('Failed to poll channel status', err);
+          }
+        };
+
+        const intervalId = setInterval(poll, pollInterval);
+        // Run first check immediately
+        poll();
+      } catch (err) {
+        console.error('Failed to start consensus channel', err);
+      }
+      return; // Skip chat message API flow
+    }
+
+    // Default non-consensus flow
     try {
       setLoading(true);
       const apiMsg = await apiSendMessage(chatId, {
         content,
         model: selectedModel.id,
-        ...(useConsensus !== undefined ? { use_consensus: useConsensus } : {}),
       });
       // 2. Add the bot's response
       setChatSessions(prev =>
