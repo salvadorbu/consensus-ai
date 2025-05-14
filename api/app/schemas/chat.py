@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, ConfigDict
 from app.schemas.message import MessageRead
 
 class ChatBase(BaseModel):
@@ -29,8 +29,8 @@ class ChatRead(BaseModel):
     default_model: str
     created_at: datetime
     updated_at: datetime
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ChatWithMessages(ChatRead):
     """Chat including its associated messages (ordered by timestamp).

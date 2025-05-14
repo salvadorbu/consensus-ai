@@ -111,6 +111,12 @@ export const ChatsApi = {
       method: 'DELETE',
     }),
 
+  // Cancel -----------------------------------------------------------
+  cancelRequest: (chatId: string): Promise<void> =>
+    request<void>(`/chats/${chatId}/cancel`, {
+      method: 'POST',
+    }),
+
   // Messages -------------------------------------------------------------------
 
   sendMessage: (
@@ -133,6 +139,7 @@ export const {
   getChat,
   updateChat,
   deleteChat,
+  cancelRequest,
   sendMessage,
   listMessages,
 } = ChatsApi;

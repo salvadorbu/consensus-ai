@@ -17,7 +17,7 @@ _executor = ThreadPoolExecutor(max_workers=4)
 class CreateChannelRequest(BaseModel):
     task: str = Field(..., description="Task description presented to the agents.")
     guiding_model: str = Field(..., description="Model identifier for the guiding / moderator agent.")
-    participant_models: List[str] = Field(..., min_items=1, description="List of model identifiers for participant agents.")
+    participant_models: List[str] = Field(..., min_length=1, description="List of model identifiers for participant agents.")
     max_rounds: int = Field(8, ge=1, le=20, description="Maximum number of discussion rounds.")
 
 class ChannelStatusResponse(BaseModel):

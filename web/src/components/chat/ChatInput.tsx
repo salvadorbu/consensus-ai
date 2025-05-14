@@ -11,7 +11,7 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
   const [inputValue, setInputValue] = useState('');
   const [useConsensus, setUseConsensus] = useState(false);
-  const { sendMessage } = useChatContext();
+  const { sendMessage, isAgentBusy, cancelGeneration } = useChatContext();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message ConsensusAI..."
+            placeholder={isAgentBusy ? "Please wait for the agent to respond..." : "Message ConsensusAI..."}
             rows={1}
             className="
               w-full resize-none bg-transparent border-0 focus:ring-0
@@ -73,16 +73,34 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
               </button>
               <button 
                 type="submit" 
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || isAgentBusy}
                 className={`
                   p-1.5 rounded-md transition-colors
-                  ${inputValue.trim() 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'}
+                  ${inputValue.trim() && !isAgentBusy
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'hidden'}
                 `}
+                title={isAgentBusy ? "Please wait for the agent to respond" : undefined}
               >
                 <Send size={16} />
               </button>
+              {isAgentBusy && (
+                <button
+                  type="button"
+                  onClick={cancelGeneration}
+                  className="p-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors"
+                  title="Stop generation"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>

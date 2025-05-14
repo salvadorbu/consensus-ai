@@ -13,6 +13,7 @@ import {
   getChat,
   deleteChat as apiDeleteChat,
   sendMessage as apiSendMessage,
+  cancelRequest,
 } from '../api/chats';
 import {
   createChannel as apiCreateChannel,
@@ -32,6 +33,8 @@ interface ChatContextType {
   sendMessage: (content: string, useConsensus?: boolean) => void;
   setSelectedModel: (model: AIModel) => void;
   loading: boolean;
+  isAgentBusy: boolean;
+  cancelGeneration: () => void;
 }
 
 // Helper: loading state for models
@@ -51,12 +54,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<AIModel>(ModelsNotLoadedFallback);
   const [loading, setLoading] = useState(false);
+  const [isAgentBusy, setIsAgentBusy] = useState(false);
+  const [busyChatId, setBusyChatId] = useState<string | null>(null);
 
   const { guidingModel, participantModels } = useConsensusSettings();
 
   // Load available models from models.json
   useEffect(() => {
-    fetch('/src/data/models.json')
+    fetch('/data/models.json')
       .then(res => res.json())
       .then(data => {
         setAvailableModels(data);
@@ -194,6 +199,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Send a message using the backend API
   const sendMessage = async (content: string, useConsensus?: boolean) => {
+    if (isAgentBusy) return; // Prevent sending if agent is busy
+    setIsAgentBusy(true);
+    setBusyChatId(activeChatId);
     let chatId = activeChatId;
     // If no active chat, create one first
     if (!selectedModel || !selectedModel.id) return;
@@ -301,9 +309,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 })
               );
               clearInterval(intervalId);
+              setIsAgentBusy(false);
+              setBusyChatId(null);
             }
           } catch (err) {
             console.error('Failed to poll channel status', err);
+            setIsAgentBusy(false);
+            setBusyChatId(null);
           }
         };
 
@@ -312,6 +324,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         poll();
       } catch (err) {
         console.error('Failed to start consensus channel', err);
+        setIsAgentBusy(false);
+        setBusyChatId(null);
       }
       return; // Skip chat message API flow
     }
@@ -342,8 +356,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         })
       );
       setLoading(false);
+      setIsAgentBusy(false);
+      setBusyChatId(null);
     } catch (err) {
       setLoading(false);
+      setIsAgentBusy(false);
+      setBusyChatId(null);
       // Optionally handle error: remove the user's message or show error
       setChatSessions(prev =>
         prev.map(chat => {
@@ -361,6 +379,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const cancelGeneration = async () => {
+    if (!busyChatId) return;
+    try {
+      await cancelRequest(busyChatId);
+    } catch (err) {
+      console.warn('Cancel request failed', err);
+    } finally {
+      setIsAgentBusy(false);
+      setBusyChatId(null);
+    }
+  };
+
   // Build context value and render provider
   const contextValue: ChatContextType = {
     chatSessions,
@@ -373,6 +403,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     sendMessage,
     setSelectedModel,
     loading,
+    isAgentBusy,
+    cancelGeneration,
   };
 
   if (!selectedModel || selectedModel.id === '') {

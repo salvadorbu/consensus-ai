@@ -44,7 +44,7 @@ const DropdownModelSelector: React.FC<DropdownModelSelectorProps> = ({ value, on
 
   // Fetch models.json on mount
   useEffect(() => {
-    fetch('/src/data/models.json')
+    fetch('/data/models.json')
       .then(res => res.json())
       .then(data => setModels(data))
       .catch(() => setModels([]));

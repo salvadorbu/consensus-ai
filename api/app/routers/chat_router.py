@@ -114,58 +114,81 @@ async def _call_agent(model: str, messages: list[dict[str, str]]) -> str | None:
     return await loop.run_in_executor(None, Agent(model).chat, messages)
 
 
+# In-memory busy state per chat
+_chat_busy = {}
+_chat_futures: dict[str, asyncio.Future] = {}
+
+
 @router.post("/{chat_id}/messages", response_model=MessageRead, status_code=status.HTTP_201_CREATED)
 async def send_message(
     chat_id: uuid.UUID, msg_in: UserMessageCreate, session: AsyncSession = Depends(get_session)
 ):
     """Send a *user* message and return the assistant response (both stored)."""
 
-    chat = await session.get(Chat, chat_id)
-    if chat is None:
-        raise HTTPException(status_code=404, detail="Chat not found")
+    # Check if agent is busy for this chat
+    if _chat_busy.get(str(chat_id), False):
+        raise HTTPException(status_code=409, detail="Agent is still responding. Please wait for the previous response to complete.")
+    _chat_busy[str(chat_id)] = True
+    try:
+        chat = await session.get(Chat, chat_id)
+        if chat is None:
+            _chat_busy[str(chat_id)] = False
+            raise HTTPException(status_code=404, detail="Chat not found")
 
-    # 1) Persist *user* message
-    user_msg = Message(
-        chat_id=chat_id,
-        role="user",
-        model="user",
-        content=msg_in.content,
-    )
-    session.add(user_msg)
-    await session.flush()  # obtain PK before calling LLM
+        # 1) Persist *user* message
+        user_msg = Message(
+            chat_id=chat_id,
+            role="user",
+            model="user",
+            content=msg_in.content,
+        )
+        session.add(user_msg)
+        await session.flush()  # obtain PK before calling LLM
 
-    # 2) Build conversation history for the assistant call
-    result = await session.execute(
-        select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
-    )
-    history = result.scalars().all()
-    messages_payload = [
-        {"role": m.role, "content": m.content} for m in history if m.content is not None
-    ]
+        # 2) Build conversation history for the assistant call
+        result = await session.execute(
+            select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
+        )
+        history = result.scalars().all()
+        messages_payload = [
+            {"role": m.role, "content": m.content} for m in history if m.content is not None
+        ]
 
-    # 3) Call the model (potentially different from default)
-    model_to_use = msg_in.model or chat.default_model
+        # 3) Call the model (potentially different from default)
+        model_to_use = msg_in.model or chat.default_model
 
-    # Handle consensus mode (for now, just log it)
-    if getattr(msg_in, "use_consensus", False):
-        logger.info(f"Consensus mode enabled for chat {chat_id}")
-        # If consensus logic is needed, add here
+        # Handle consensus mode (for now, just log it)
+        if getattr(msg_in, "use_consensus", False):
+            logger.info(f"Consensus mode enabled for chat {chat_id}")
+            # If consensus logic is needed, add here
 
-    assistant_content = await _call_agent(model_to_use, messages_payload) or ""
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future = loop.run_in_executor(None, Agent(model_to_use).chat, messages_payload)
+        _chat_futures[str(chat_id)] = future
+        try:
+            assistant_content = await future
+        except asyncio.CancelledError:
+            logger.info("Generation cancelled for chat %s", chat_id)
+            raise HTTPException(status_code=499, detail="Generation cancelled")
+        finally:
+            _chat_futures.pop(str(chat_id), None)
+        assistant_content = assistant_content or ""
 
-    # 4) Persist assistant reply
-    assistant_msg = Message(
-        chat_id=chat_id,
-        role="assistant",
-        model=model_to_use,
-        content=assistant_content,
-    )
-    session.add(assistant_msg)
+        # 4) Persist assistant reply
+        assistant_msg = Message(
+            chat_id=chat_id,
+            role="assistant",
+            model=model_to_use,
+            content=assistant_content,
+        )
+        session.add(assistant_msg)
 
-    await session.commit()
-    await session.refresh(assistant_msg)
+        await session.commit()
+        await session.refresh(assistant_msg)
 
-    return MessageRead.model_validate(assistant_msg)
+        return MessageRead.model_validate(assistant_msg)
+    finally:
+        _chat_busy[str(chat_id)] = False
 
 
 @router.get("/{chat_id}/messages", response_model=List[MessageRead])
@@ -180,3 +203,13 @@ async def list_messages(chat_id: uuid.UUID, session: AsyncSession = Depends(get_
         if await session.get(Chat, chat_id) is None:
             raise HTTPException(status_code=404, detail="Chat not found")
     return [MessageRead.model_validate(m) for m in messages]
+
+
+@router.post("/{chat_id}/cancel", status_code=status.HTTP_202_ACCEPTED)
+async def cancel_chat(chat_id: uuid.UUID):
+    """Attempt to cancel an in-flight generation for this chat."""
+    fut = _chat_futures.get(str(chat_id))
+    if fut and not fut.done():
+        fut.cancel()
+    _chat_busy[str(chat_id)] = False
+    return {"status": "cancellation_requested"}
