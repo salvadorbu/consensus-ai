@@ -1,6 +1,7 @@
 import asyncio
 from app.db import engine, Base
-from app.models import Chat, Message
+from app.models.chat import Chat
+from app.models.message import Message
 
 async def create_all():
     async with engine.begin() as conn:

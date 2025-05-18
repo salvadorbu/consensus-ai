@@ -1,6 +1,9 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 WORKDIR /app
+
+# Ensure app is importable as a package
+ENV PYTHONPATH=/app
 
 # Copy requirements first for better caching
 COPY requirements.txt .
