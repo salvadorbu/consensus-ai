@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import Optional, List
+from app.schemas.consensus_channel import ConsensusChannelRead
 from pydantic import BaseModel, Field, constr, ConfigDict
 from app.schemas.message import MessageRead
 
@@ -37,3 +38,7 @@ class ChatWithMessages(ChatRead):
     NOTE: Do NOT use from_attributes here, as messages must always be set explicitly in the endpoint to avoid async SQLAlchemy lazy loading errors.
     """
     messages: List[MessageRead] = []
+    channels: List["ConsensusChannelRead"] = []
+
+# Resolve forward refs for type checkers
+ChatWithMessages.model_rebuild()

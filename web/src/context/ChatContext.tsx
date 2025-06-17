@@ -122,12 +122,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return {
               ...chat,
-              messages: chatWithMessages.messages.map(msg => ({
-                role: msg.role,
-                content: msg.content,
-                timestamp: new Date(msg.created_at),
-                model: msg.model,
-              })),
+              messages: [
+                ...chatWithMessages.messages.map(msg => ({
+                  role: msg.role as MessageRole,
+                  content: msg.content,
+                  timestamp: new Date(msg.created_at),
+                  model: msg.model,
+                  isConsensus: msg.model === 'consensus',
+                })),
+                ...chatWithMessages.channels
+                  .filter(c => c.answer)
+                  .filter(
+                    c =>
+                      !chatWithMessages.messages.some(
+                        m => m.model === 'consensus' && m.content === c.answer,
+                      ),
+                  )
+                  .map(c => ({
+                    role: 'assistant' as MessageRole,
+                    content: c.answer as string,
+                    timestamp: new Date(c.finished_at ?? c.created_at),
+                    model: 'consensus',
+                    isConsensus: true,
+                  })),
+              ],
               lastUpdated: new Date(chatWithMessages.updated_at),
             };
           }
@@ -255,6 +273,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         timestamp: new Date(),
         model: 'consensus',
         isConsensus: true,
+        lastUpdated: new Date(), // Add lastUpdated property
       };
       setChatSessions(prev =>
         prev.map(chat => {
@@ -276,6 +295,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .filter((m): m is AIModel => m !== null)
             .map(m => m.id),
           max_rounds: 6,
+          chat_id: chatId,
         });
         const channelId = channelResp.channel_id;
 

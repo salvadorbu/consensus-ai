@@ -18,3 +18,8 @@ class Chat(Base):
     messages: Mapped[list["Message"]] = relationship(
         "Message", back_populates="chat", cascade="all, delete-orphan", passive_deletes=True
     )
+
+    # Consensus channels initiated from this chat
+    channels: Mapped[list["ConsensusChannel"]] = relationship(
+        "ConsensusChannel", back_populates="chat", passive_deletes=True
+    )

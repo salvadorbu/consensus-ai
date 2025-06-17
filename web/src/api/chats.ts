@@ -23,8 +23,11 @@ export interface Message {
   created_at: string; // ISO timestamp
 }
 
+import type { ConsensusChannel } from '../types/consensus';
+
 export interface ChatWithMessages extends Chat {
   messages: Message[];
+  channels: ConsensusChannel[];
 }
 
 export interface ChatCreateDto {

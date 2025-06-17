@@ -14,7 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_session
 from ..models.chat import Chat
 from ..models.message import Message
+from ..models.consensus_channel import ConsensusChannel
 from ..schemas.chat import ChatCreate, ChatRead, ChatUpdate, ChatWithMessages
+from ..schemas.consensus_channel import ConsensusChannelRead
 from ..schemas.message import MessageRead, UserMessageCreate
 from ..agent import Agent
 
@@ -58,10 +60,16 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
         raise HTTPException(status_code=404, detail="Chat not found")
 
     # Eager load messages ordered by timestamp
-    result = await session.execute(
+    msg_result = await session.execute(
         select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
     )
-    messages = result.scalars().all()
+    messages = msg_result.scalars().all()
+
+    # Eager load consensus channels for this chat
+    chan_result = await session.execute(
+        select(ConsensusChannel).where(ConsensusChannel.chat_id == chat_id).order_by(ConsensusChannel.created_at.asc())
+    )
+    channels = chan_result.scalars().all()
 
     chat_dto = ChatWithMessages(
         id=chat.id,
@@ -69,7 +77,8 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
         default_model=chat.default_model,
         created_at=chat.created_at,
         updated_at=chat.updated_at,
-        messages=[MessageRead.model_validate(m) for m in messages]
+        messages=[MessageRead.model_validate(m) for m in messages],
+        channels=[ConsensusChannelRead.model_validate(c) for c in channels],
     )
     return chat_dto
 

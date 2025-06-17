@@ -11,6 +11,7 @@ export interface CreateChannelDto {
   guiding_model: string;
   participant_models: string[];
   max_rounds?: number;
+  chat_id?: string;
 }
 
 export interface ChannelCreateResponse {

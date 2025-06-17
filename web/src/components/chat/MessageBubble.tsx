@@ -26,13 +26,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             >
               <Markdown content={message.content} />
               {/* Model info - only for AI messages */}
-              {!isUser && message.model && (
+              {!isUser && (
                 <div className="mt-2 text-xs opacity-70">
-                  {message.model}
-                  {message.isConsensus && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded-full bg-purple-700 text-white text-xs">
+                  {message.isConsensus ? (
+                    <span className="px-1.5 py-0.5 rounded-full bg-purple-700 text-white text-xs">
                       Consensus
                     </span>
+                  ) : (
+                    message.model
                   )}
                 </div>
               )}

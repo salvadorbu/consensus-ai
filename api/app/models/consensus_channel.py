@@ -9,8 +9,9 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 
-from sqlalchemy import String, Integer, Text, JSON, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Integer, Text, JSON, func, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
@@ -33,6 +34,15 @@ class ConsensusChannel(Base):
     guiding_model: Mapped[str] = mapped_column(String(length=120), nullable=False)
     participant_models: Mapped[List[str]] = mapped_column(JSON, nullable=False)
     max_rounds: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Optional association to an existing chat conversation so that the
+    # consensus answer can be appended to the chat history once complete.
+    chat_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("chats.id", ondelete="SET NULL"), nullable=True
+    )
+    
+    # Relationship back to the originating chat (if any)
+    chat: Mapped["Chat"] = relationship("Chat", back_populates="channels")
 
     # Runtime status
     status: Mapped[str] = mapped_column(String(length=20), nullable=False, default="pending")
