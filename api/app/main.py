@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+
+# Configure application-wide logging before any other local imports
+from .logging_config import setup_logging
+setup_logging()
 from fastapi.middleware.cors import CORSMiddleware
 
 # Routers
@@ -34,4 +38,4 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

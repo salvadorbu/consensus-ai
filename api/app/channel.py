@@ -73,6 +73,7 @@ class Channel:
         self.participants = participant_agents
         self.config = config or ChannelConfig()
         self.rounds_executed: int = 0  # will be updated by run()
+        self.stopped: bool = False  # True if consensus or round limit reached
 
         # Historical messages per agent; used to preserve conversational context.
         # Each value is a *list* of OpenAI-style {role, content} dictionaries.
@@ -80,9 +81,6 @@ class Channel:
             agent: [] for agent in [self.guiding_agent, *self.participants]
         }
 
-    # ---------------------------------------------------------------------
-    # Public helpers
-    # ---------------------------------------------------------------------
     def run(self) -> str:
         """Execute the multi-agent conversation and return the final answer.
 
@@ -106,11 +104,13 @@ class Channel:
 
             if status == "CONSENSUS_REACHED":
                 logger.info("Consensus reached in round %s", round_idx)
+                self.stopped = True
                 return content.strip()
 
             # If this was the last allowed round, we cannot iterate again.
             if round_idx == self.config.max_rounds:
                 logger.warning("Reached round limit without consensus, requesting failure summary.")
+                self.stopped = True
                 failure_summary = self._request_failure_summary(participant_msgs)
                 # Ensure it begins with sentinel; if not, prepend.
                 if not failure_summary.upper().startswith("CONSENSUS_FAILED"):
@@ -130,9 +130,6 @@ class Channel:
             else "No consensus reached within the configured discussion limit."
         )
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
     def _collect_participant_responses(self, round_idx: int) -> List[Tuple[Agent, str]]:
         """Send the *task* plus conversational history to each participant.
 
@@ -143,11 +140,16 @@ class Channel:
         """
         participant_responses: List[Tuple[Agent, str]] = []
 
+        if self.stopped:
+            logger.warning("Channel stopped. No further participant responses will be collected.")
+            return participant_responses
+
+        # Collect responses from all participants before moving on to the guiding agent.
         for agent in self.participants:
-            # Build the prompt for this agent.
-            logger.debug("Collecting response from %s", agent.model)
+            logger.debug(f"Collecting response from {agent.model}")
             messages = self._build_participant_prompt(agent, round_idx)
             response = agent.chat(messages) or ""
+            logger.info(f"Response from {agent.model}: {response}")
             participant_responses.append((agent, response))
 
             # Update history.
@@ -216,6 +218,10 @@ class Channel:
     ) -> str:
         """Ask the guiding agent to determine consensus and provide guidance."""
 
+        if self.stopped:
+            logger.warning("Channel stopped. No further guidance will be requested.")
+            return "CONSENSUS_REACHED: Channel stopped."
+
         # Compose prompt for guiding agent.
         messages: List[Dict[str, str]] = []
 
@@ -238,15 +244,14 @@ class Channel:
             messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "system", "content": f"TASK: {self.task}"})
 
-        # Provide the latest round's answers.
         combined = []
         for idx, (_agent, content) in enumerate(participant_msgs, 1):
             combined.append(f"Agent{idx}: {content}")
         messages.append({"role": "user", "content": "\n".join(combined)})
 
         response = self.guiding_agent.chat(messages) or ""
+        logger.info(f"Response from guiding agent ({self.guiding_agent.model}): {response}")
 
-        # Record history.
         self._history[self.guiding_agent].append({"role": "assistant", "content": response})
         return response
 
@@ -283,13 +288,11 @@ class Channel:
         messages.append({"role": "user", "content": "\n".join(combined)})
 
         response = self.guiding_agent.chat(messages) or ""
+        logger.info(f"Failure summary from guiding agent ({self.guiding_agent.model}): {response}")
         self._history[self.guiding_agent].append({"role": "assistant", "content": response})
         return response
 
-    # ------------------------------------------------------------------
-    # Convenience representation helpers
-    # ------------------------------------------------------------------
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         return (
             f"<Channel task='{self.task[:30]}...' participants={len(self.participants)} "
             f"max_rounds={self.config.max_rounds}>"

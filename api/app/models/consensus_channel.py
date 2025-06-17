@@ -1,0 +1,48 @@
+"""SQLAlchemy ORM model for a consensus **Channel** run.
+
+Stores metadata about each multi-agent consensus attempt plus a serialized
+transcript of the discussion once it finishes running.
+"""
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+from typing import List, Dict, Optional, Any
+
+from sqlalchemy import String, Integer, Text, JSON, func
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db import Base
+
+
+class ConsensusChannel(Base):
+    """Persisted record of a **Channel** execution.
+
+    The row is created when the `/channels` endpoint is hit and updated once
+    the background job finishes.
+    """
+
+    __tablename__ = "consensus_channels"
+
+    # We reuse the same UUID string returned to the API client so look-ups are
+    # straightforward.
+    id: Mapped[str] = mapped_column(String(length=36), primary_key=True)
+
+    # Core configuration / metadata
+    task: Mapped[str] = mapped_column(Text, nullable=False)
+    guiding_model: Mapped[str] = mapped_column(String(length=120), nullable=False)
+    participant_models: Mapped[List[str]] = mapped_column(JSON, nullable=False)
+    max_rounds: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Runtime status
+    status: Mapped[str] = mapped_column(String(length=20), nullable=False, default="pending")
+    rounds_executed: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    answer: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Full discussion transcript (serialized as JSON). Keys are agent *model*
+    # names so that the structure is JSON-serialisable.
+    log: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    finished_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)

@@ -293,7 +293,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     return {
                       ...chat,
                       messages: chat.messages.map(msg =>
-                        msg === placeholderMsg
+                        (msg.isConsensus && msg.content === 'Running consensus...')
                           ? {
                               ...msg,
                               content:

@@ -2,6 +2,7 @@ import asyncio
 from app.db import engine, Base
 from app.models.chat import Chat
 from app.models.message import Message
+from app.models.consensus_channel import ConsensusChannel
 
 async def create_all():
     async with engine.begin() as conn:
