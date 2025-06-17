@@ -14,7 +14,7 @@ A backend service where a group of LLMs is prompted with a task and they work on
 ### Prerequisites
 
 - Docker and Docker Compose
-- Python 3.9+
+- Python 3.12+
 
 ### Installation
 
