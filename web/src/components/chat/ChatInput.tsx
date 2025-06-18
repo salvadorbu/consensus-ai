@@ -60,7 +60,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
 
           <div className="flex items-center justify-between mt-2 text-gray-400">
             <div className="flex items-center space-x-2">
-              <ModelSelector />
+              <ModelSelector disabled={useConsensus} />
               <ConsensusButton active={useConsensus} onClick={() => setUseConsensus(!useConsensus)} />
             </div>
 

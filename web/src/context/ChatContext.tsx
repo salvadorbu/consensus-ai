@@ -12,13 +12,11 @@ import {
   createChat as apiCreateChat,
   getChat,
   deleteChat as apiDeleteChat,
+  listMessages as apiListMessages,
   sendMessage as apiSendMessage,
   cancelRequest,
 } from '../api/chats';
-import {
-  createChannel as apiCreateChannel,
-  getChannelStatus,
-} from '../api/channels';
+
 import { useConsensusSettings } from './ConsensusContext';
 
 // Define context interface
@@ -264,7 +262,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
     }
 
-    // If useConsensus flag is set, send through channels API instead
+    // If useConsensus flag is set, leverage unified chat endpoint
     if (useConsensus) {
       // Optimistically add placeholder assistant message
       const placeholderMsg = {
@@ -273,7 +271,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         timestamp: new Date(),
         model: 'consensus',
         isConsensus: true,
-        lastUpdated: new Date(), // Add lastUpdated property
       };
       setChatSessions(prev =>
         prev.map(chat => {
@@ -288,65 +285,80 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
 
       try {
-        const channelResp = await apiCreateChannel({
-          task: content,
+        const assistantMsg = await apiSendMessage(chatId!, {
+          content,
+          model: selectedModel.id,
+          use_consensus: true,
           guiding_model: guidingModel?.id || selectedModel.id,
           participant_models: participantModels
             .filter((m): m is AIModel => m !== null)
             .map(m => m.id),
           max_rounds: 6,
-          chat_id: chatId,
         });
-        const channelId = channelResp.channel_id;
 
-        // Poll for status
-        const pollInterval = 3000; // 3 seconds
+        // Replace optimistic placeholder with backend placeholder
+        setChatSessions(prev =>
+          prev.map(chat =>
+            chat.id === chatId
+              ? {
+                  ...chat,
+                  messages: [
+                    ...chat.messages.filter(m => m !== placeholderMsg),
+                    {
+                      role: assistantMsg.role as MessageRole,
+                      content: assistantMsg.content || 'Running consensus...',
+                      timestamp: new Date(assistantMsg.created_at),
+                      model: assistantMsg.model,
+                      isConsensus: true,
+                    },
+                  ],
+                }
+              : chat,
+          ),
+        );
 
-        const poll = async () => {
+        // Poll messages until consensus answer arrives
+        const pollIntervalMs = 4000;
+        const intervalId = window.setInterval(async () => {
           try {
-            const status = await getChannelStatus(channelId);
-            if (status.status === 'finished' || status.status === 'error') {
-              // Update placeholder message with final answer or error
+            const msgs = await apiListMessages(chatId!);
+            const finished = msgs.find(
+              m => m.model === 'consensus' && m.content && m.content.trim() !== '',
+            );
+            if (finished) {
               setChatSessions(prev =>
-                prev.map(chat => {
-                  if (chat.id === chatId) {
-                    return {
-                      ...chat,
-                      messages: chat.messages.map(msg =>
-                        (msg.isConsensus && msg.content === 'Running consensus...')
-                          ? {
-                              ...msg,
-                              content:
-                                status.status === 'finished'
-                                  ? status.answer || 'No answer.'
-                                  : `Consensus error: ${status.error ?? 'unknown'}`,
-                            }
-                          : msg
-                      ),
-                    };
-                  }
-                  return chat;
-                })
+                prev.map(chat =>
+                  chat.id === chatId
+                    ? {
+                        ...chat,
+                        messages: msgs.map(msg => ({
+                          role: msg.role as MessageRole,
+                          content: msg.content,
+                          timestamp: new Date(msg.created_at),
+                          model: msg.model,
+                          isConsensus: msg.model === 'consensus',
+                        })),
+                      }
+                    : chat,
+                ),
               );
               clearInterval(intervalId);
               setIsAgentBusy(false);
               setBusyChatId(null);
             }
           } catch (err) {
-            console.error('Failed to poll channel status', err);
+            console.error('Consensus polling failed', err);
+            clearInterval(intervalId);
             setIsAgentBusy(false);
             setBusyChatId(null);
           }
-        };
-
-        const intervalId = setInterval(poll, pollInterval);
-        // Run first check immediately
-        poll();
+        }, pollIntervalMs);
       } catch (err) {
-        console.error('Failed to start consensus channel', err);
+        console.error('Failed to send consensus message:', err);
         setIsAgentBusy(false);
         setBusyChatId(null);
       }
+
       return; // Skip chat message API flow
     }
 

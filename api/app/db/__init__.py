@@ -14,7 +14,7 @@ from sqlalchemy.schema import MetaData
 # Example:
 #   postgresql+asyncpg://user:password@hostname:port/database
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5433/consensus_db"
+    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/consensus_db"
 )
 
 # Naming convention recommended by Alembic to avoid issues when autogenerating

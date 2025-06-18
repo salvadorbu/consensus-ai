@@ -10,6 +10,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ..db import get_session
 from ..models.chat import Chat
@@ -61,7 +62,7 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
     # Eager load messages ordered by timestamp
     msg_result = await session.execute(
-        select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
+        select(Message).options(selectinload(Message.channel)).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
     )
     messages = msg_result.scalars().all()
 
@@ -71,13 +72,23 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
     )
     channels = chan_result.scalars().all()
 
+    # Build Message DTOs with optional channel
+    message_dtos: list[MessageRead] = []
+    for m in messages:
+        dto = MessageRead.model_validate(m)
+        if m.channel_id:
+            chan_row = await session.get(ConsensusChannel, m.channel_id)
+            if chan_row:
+                dto.channel = ConsensusChannelRead.model_validate(chan_row)
+        message_dtos.append(dto)
+
     chat_dto = ChatWithMessages(
         id=chat.id,
         name=chat.name,
         default_model=chat.default_model,
         created_at=chat.created_at,
         updated_at=chat.updated_at,
-        messages=[MessageRead.model_validate(m) for m in messages],
+        messages=message_dtos,
         channels=[ConsensusChannelRead.model_validate(c) for c in channels],
     )
     return chat_dto
@@ -156,7 +167,7 @@ async def send_message(
 
         # 2) Build conversation history for the assistant call
         result = await session.execute(
-            select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
+            select(Message).options(selectinload(Message.channel)).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
         )
         history = result.scalars().all()
         messages_payload = [
@@ -166,11 +177,45 @@ async def send_message(
         # 3) Call the model (potentially different from default)
         model_to_use = msg_in.model or chat.default_model
 
-        # Handle consensus mode (for now, just log it)
-        if getattr(msg_in, "use_consensus", False):
-            logger.info(f"Consensus mode enabled for chat {chat_id}")
-            # If consensus logic is needed, add here
+        # ------------------------------
+        # CONSENSUS path
+        # ------------------------------
+        if msg_in.use_consensus:
+            guiding = msg_in.guiding_model or chat.default_model
+            participants = msg_in.participant_models or [chat.default_model]
+            from ..services.consensus_service import spawn_channel  # local import to avoid cycles
+            channel_id = await spawn_channel(
+                task=msg_in.content,
+                guiding_model=guiding,
+                participant_models=participants,
+                max_rounds=msg_in.max_rounds or 8,
+                chat_id=chat_id,
+                session=session,
+            )
+            # Placeholder assistant message (empty until consensus finishes)
+            assistant_msg = Message(
+                generation_mode="consensus",
+                channel_id=channel_id,
+                chat_id=chat_id,
+                role="assistant",
+                model="consensus",
+                content="",  # will be updated asynchronously
+            )
+            session.add(assistant_msg)
+            await session.flush()
+            await session.commit()
+            # Re-fetch with relationship eagerly loaded to avoid lazy-load during Pydantic conversion
 
+            
+            result = await session.execute(
+                select(Message).options(selectinload(Message.channel)).where(Message.id == assistant_msg.id)
+            )
+            msg_with_channel = result.scalar_one()
+            return MessageRead.model_validate(msg_with_channel)
+
+        # ------------------------------
+        # DIRECT LLM path
+        # ------------------------------
         loop = asyncio.get_running_loop()
         future: asyncio.Future = loop.run_in_executor(None, Agent(model_to_use).chat, messages_payload)
         _chat_futures[str(chat_id)] = future
@@ -185,6 +230,7 @@ async def send_message(
 
         # 4) Persist assistant reply
         assistant_msg = Message(
+            generation_mode="direct", 
             chat_id=chat_id,
             role="assistant",
             model=model_to_use,
@@ -204,14 +250,22 @@ async def send_message(
 async def list_messages(chat_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     """Return all messages for a chat ordered by creation time ascending."""
     result = await session.execute(
-        select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
+        select(Message).options(selectinload(Message.channel)).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
     )
     messages = result.scalars().all()
     if not messages:
         # Validate chat exists
         if await session.get(Chat, chat_id) is None:
             raise HTTPException(status_code=404, detail="Chat not found")
-    return [MessageRead.model_validate(m) for m in messages]
+    message_dtos: list[MessageRead] = []
+    for m in messages:
+        dto = MessageRead.model_validate(m)
+        if m.channel_id:
+            chan_row = await session.get(ConsensusChannel, m.channel_id)
+            if chan_row:
+                dto.channel = ConsensusChannelRead.model_validate(chan_row)
+        message_dtos.append(dto)
+    return message_dtos
 
 
 @router.post("/{chat_id}/cancel", status_code=status.HTTP_202_ACCEPTED)

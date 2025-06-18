@@ -27,7 +27,9 @@ type AIModel = {
 
 const PAGE_SIZE = 5;
 
-const ModelSelector: React.FC = () => {
+interface ModelSelectorProps { disabled?: boolean; }
+
+const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [models, setModels] = useState<AIModel[]>([]);
   const [search, setSearch] = useState('');
@@ -51,7 +53,10 @@ const ModelSelector: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filteredModels.length / PAGE_SIZE));
   const paginatedModels = filteredModels.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  const toggleDropdown = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+  };
 
   const handleModelSelect = (model: AIModel) => {
     setSelectedModel(model);
@@ -81,7 +86,8 @@ const ModelSelector: React.FC = () => {
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-gray-700 transition-colors"
+        disabled={disabled}
+        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'}`}
       >
         <span className="text-sm">{selectedModel?.name || 'Select Model'}</span>
         <ChevronDown size={14} className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />

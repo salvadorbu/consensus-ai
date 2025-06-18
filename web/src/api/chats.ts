@@ -44,6 +44,9 @@ export interface UserMessageCreateDto {
   content: string;
   model?: string; // Optional override of the chat's default_model
   use_consensus?: boolean;
+  guiding_model?: string;
+  participant_models?: string[];
+  max_rounds?: number;
 }
 
 // -----------------------------------------------------------------------------
