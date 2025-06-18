@@ -51,7 +51,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ onOpenSettings }) => {
         )}
       </div>
 
-      <div className="p-4 md:p-6 border-t border-gray-800">
+      <div className="p-4 md:p-6 border-t border-transparent">
         <ChatInput onOpenSettings={onOpenSettings} />
       </div>
     </div>

@@ -15,14 +15,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      sendMessage(inputValue, useConsensus);
-      setInputValue('');
-    }
+    if (isAgentBusy) return;
+
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+
+    sendMessage(trimmed, useConsensus);
+    setInputValue('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isAgentBusy) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -55,7 +58,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
             style={{ outline: 'none' }}
           />
 
-          {/* Bottom controls */}
           <div className="flex items-center justify-between mt-2 text-gray-400">
             <div className="flex items-center space-x-2">
               <ModelSelector />

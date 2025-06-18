@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusCircle, Settings, LogOut, ChevronRight, ChevronLeft } from 'lucide-react';
+import { SquarePen, Settings, LogOut, ChevronRight, ChevronLeft } from 'lucide-react';
 import ChatHistory from './ChatHistory';
 import { useChatContext } from '../../context/ChatContext';
 
@@ -10,10 +10,10 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, toggleCollapsed }) => {
-  const { startNewChat } = useChatContext();
+  const { selectChat } = useChatContext();
 
   const handleNewChat = () => {
-    startNewChat();
+    selectChat(''); // empty string resets to welcome view
     closeSidebar();
   };
 
@@ -36,11 +36,11 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
         </h1>
         <button
           onClick={handleNewChat}
-          className="w-full py-2 px-3 flex items-center justify-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-200"
+          className={`flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${isCollapsed ? 'p-0 rounded-full' : 'w-full py-2 px-3 rounded-md'} text-gray-200 hover:bg-gray-700/40`}
           title="New Chat"
         >
-          <PlusCircle size={18} />
-          {!isCollapsed && <span>New Chat</span>}
+          <SquarePen size={isCollapsed ? 24 : 18} />
+          {!isCollapsed && <span className="font-medium">New Chat</span>}
         </button>
       </div>
 
