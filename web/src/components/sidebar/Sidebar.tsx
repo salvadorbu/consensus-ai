@@ -1,7 +1,10 @@
 import React from 'react';
-import { SquarePen, Settings, LogOut, ChevronRight, ChevronLeft } from 'lucide-react';
+import { SquarePen, LogIn, UserCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import ChatHistory from './ChatHistory';
 import { useChatContext } from '../../context/ChatContext';
+import logo from '../../assets/logo.svg';
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -10,6 +13,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, toggleCollapsed }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { selectChat } = useChatContext();
 
   const handleNewChat = () => {
@@ -18,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-800 border-r border-gray-700 relative">
+    <div className="h-full flex flex-col bg-gray-900 border-r border-gray-700 relative">
       {/* Toggle sidebar button */}
       {toggleCollapsed && (
         <button
@@ -31,12 +36,18 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
       )}
       {/* Logo and new chat button */}
       <div className={`p-4 ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
-        <h1 className="text-xl font-bold mb-4 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          {isCollapsed ? 'C' : 'ConsensusAI'}
-        </h1>
+        <div className="flex items-center justify-center mb-4">
+          {isCollapsed ? (
+            <img src={logo} alt="ConsensusAI logo" className="h-6 w-6" />
+          ) : (
+            <h1 className="text-xl font-bold text-blue-600 drop-shadow-[0_0_6px_#2563eb]">
+              ConsensusAI
+            </h1>
+          )}
+        </div>
         <button
           onClick={handleNewChat}
-          className={`flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${isCollapsed ? 'p-0 rounded-full' : 'w-full py-2 px-3 rounded-md'} text-gray-200 hover:bg-gray-700/40`}
+          className={`flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none ${isCollapsed ? 'p-0 rounded-full' : 'w-full py-2 px-3 rounded-md'} bg-blue-600 hover:bg-blue-700 text-white drop-shadow-[0_0_6px_#2563eb]`}
           title="New Chat"
         >
           <SquarePen size={isCollapsed ? 24 : 18} />
@@ -56,18 +67,20 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
 
       {/* Sidebar footer */}
       <div className="p-4 border-t border-gray-700">
-        <div className={`flex ${isCollapsed ? 'flex-col space-y-4' : 'justify-around'}`}>
-          <button 
+        <div className={`flex ${isCollapsed ? 'flex-col items-center space-y-4' : 'justify-center'}`}>
+          <button
+            onClick={() => {
+              if (isAuthenticated) {
+                navigate('/profile');
+              } else {
+                navigate('/signin');
+              }
+              closeSidebar();
+            }}
             className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-            title="Settings"
+            title={isAuthenticated ? 'Profile' : 'Sign In'}
           >
-            <Settings size={20} />
-          </button>
-          <button 
-            className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-            title="Logout"
-          >
-            <LogOut size={20} />
+            {isAuthenticated ? <UserCircle size={20} /> : <LogIn size={20} />}
           </button>
         </div>
       </div>

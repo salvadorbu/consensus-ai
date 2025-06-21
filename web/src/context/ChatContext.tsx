@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChatSession, AIModel } from '../types';
 import type { MessageRole } from '../types/index';
 import {
@@ -54,6 +55,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(false);
   const [isAgentBusy, setIsAgentBusy] = useState(false);
   const [busyChatId, setBusyChatId] = useState<string | null>(null);
+
+  // Routing helpers
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Keep local activeChatId in sync with the URL
+  useEffect(() => {
+    if (location.pathname.startsWith('/chat/')) {
+      const id = location.pathname.split('/')[2];
+      if (id && id !== activeChatId) setActiveChatId(id);
+    } else if (activeChatId) {
+      setActiveChatId(null);
+    }
+  }, [location.pathname]);
 
   const { guidingModel, participantModels } = useConsensusSettings();
 
@@ -188,6 +203,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
       setChatSessions(prev => [newChat, ...prev]);
       setActiveChatId(created.id);
+      navigate(`/chat/${created.id}`);
     } catch (err) {
       console.error('Failed to create chat:', err);
     }
@@ -195,7 +211,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Select a chat
   const selectChat = (chatId: string) => {
-    setActiveChatId(chatId);
+    if (chatId) {
+      navigate(`/chat/${chatId}`);
+      setActiveChatId(chatId);
+    } else {
+      navigate('/');
+      setActiveChatId(null);
+    }
   };
 
   // Delete a chat using the backend API
@@ -205,6 +227,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setChatSessions(prev => prev.filter(chat => chat.id !== chatId));
       // If active chat is deleted, set active to null or another chat
       if (activeChatId === chatId) {
+        navigate('/');
         const remainingChats = chatSessions.filter(chat => chat.id !== chatId);
         setActiveChatId(remainingChats.length > 0 ? remainingChats[0].id : null);
       }

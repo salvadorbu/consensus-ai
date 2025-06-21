@@ -8,3 +8,8 @@ pytest-asyncio==0.21.1
 openai==1.76.2
 sqlalchemy==2.0.41
 asyncpg==0.30.0
+python-jose[cryptography]==3.5.0
+email-validator==2.2.0
+bcrypt==3.2.2
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.20

@@ -3,6 +3,7 @@ from app.db import engine, Base
 from app.models.chat import Chat
 from app.models.message import Message
 from app.models.consensus_channel import ConsensusChannel
+from app.models.user import User
 
 import asyncio
 import logging

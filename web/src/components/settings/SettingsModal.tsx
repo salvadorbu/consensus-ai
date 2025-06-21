@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, CreditCard, Settings as SettingsIcon, Layers, Trash2 } from 'lucide-react';
 import DropdownModelSelector from './DropdownModelSelector';
 import { useConsensusSettings } from '../../context/ConsensusContext';
@@ -9,20 +10,26 @@ interface SettingsModalProps {
 }
 
 const sectionList = [
+  { key: 'user', label: 'Profile', icon: <User size={18} className="inline-block mr-2" /> },
   { key: 'general', label: 'General', icon: <SettingsIcon size={18} className="inline-block mr-2" /> },
   { key: 'consensus', label: 'Consensus', icon: <Layers size={18} className="inline-block mr-2" /> },
-  { key: 'user', label: 'User', icon: <User size={18} className="inline-block mr-2" /> },
   { key: 'billing', label: 'Billing', icon: <CreditCard size={18} className="inline-block mr-2" /> },
 ];
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
-  const [selectedSection, setSelectedSection] = useState('general');
+  const navigate = useNavigate();
+  const location = useLocation();
+  type SectionKey = 'user' | 'general' | 'consensus' | 'billing';
+  const segment = location.pathname.split('/')[2] || 'profile';
+  const selectedSection: SectionKey = segment === 'profile' ? 'user' : (segment as SectionKey);
   const {
     guidingModel: selectedGuidingModel,
     participantModels,
     setGuidingModel: setSelectedGuidingModel,
     setParticipantModels,
   } = useConsensusSettings();
+  
+
   if (!open) return null;
 
   return (
@@ -58,7 +65,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                       ? 'bg-blue-700 text-white shadow'
                       : 'bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white'}
                   `}
-                  onClick={() => setSelectedSection(section.key)}
+                  onClick={() => {
+                      const segment = section.key === 'user' ? 'profile' : section.key;
+                      navigate(`/settings/${segment}`);
+                    }}
                 >
                   <span className="mr-2">{section.icon}</span>
                   {section.label}
@@ -68,7 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             <div className="flex-1">
               {selectedSection === 'user' && (
                 <section>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-100 flex items-center"><User size={18} className="inline-block mr-2" />User</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-100 flex items-center"><User size={18} className="inline-block mr-2" />Profile</h3>
                   <div className="text-gray-400">(Coming soon: manage your user profile and preferences.)</div>
                 </section>
               )}

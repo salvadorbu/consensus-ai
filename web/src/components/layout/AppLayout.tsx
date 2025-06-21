@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../sidebar/Sidebar';
 import ChatContainer from '../chat/ChatContainer';
 import { Menu } from 'lucide-react';
 import SettingsModal from '../settings/SettingsModal';
 
 const AppLayout: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Settings modal is now derived from the URL (any path that starts with /settings)
+  const settingsOpen = location.pathname.startsWith('/settings');
 
   // Initialize sidebar state based on screen size
   useEffect(() => {
@@ -67,7 +71,7 @@ const AppLayout: React.FC = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
+        <ChatContainer onOpenSettings={() => navigate('/settings/profile')} />
       </div>
 
       {/* Overlay for mobile sidebar */}
@@ -78,7 +82,7 @@ const AppLayout: React.FC = () => {
         ></div>
       )}
       {/* Settings Modal */}
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsModal open={settingsOpen} onClose={() => navigate('/')} />
     </div>
   );
 };

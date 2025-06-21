@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send, Settings } from 'lucide-react';
 import ModelSelector from './ModelSelector';
 import ConsensusButton from './ConsensusButton';
@@ -12,6 +12,38 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
   const [inputValue, setInputValue] = useState('');
   const [useConsensus, setUseConsensus] = useState(false);
   const { sendMessage, isAgentBusy, cancelGeneration } = useChatContext();
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Dynamically adjust textarea height based on content.
+  // It will grow until it reaches roughly six lines of text, after which
+  // a vertical scrollbar appears instead of further expansion.
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Reset height so scrollHeight is computed correctly after content changes
+    textarea.style.height = 'auto';
+
+    const desiredHeight = textarea.scrollHeight;
+
+    // Calculate maximum allowed height as six lines
+    const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 24;
+    const maxHeight = lineHeight * 6;
+
+    if (desiredHeight <= maxHeight) {
+      textarea.style.height = `${desiredHeight}px`;
+      textarea.style.overflowY = 'hidden';
+    } else {
+      textarea.style.height = `${maxHeight}px`;
+      textarea.style.overflowY = 'auto';
+    }
+  };
+
+  // Re-calculate height whenever text changes
+  useEffect(() => {
+    adjustHeight();
+  }, [inputValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +77,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
       >
         <div className="relative bg-gray-800 rounded-xl p-3">
           <textarea
+            ref={textareaRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -53,7 +86,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
             className="
               w-full resize-none bg-transparent border-0 focus:ring-0
               text-white placeholder-gray-400 py-2 pr-12 pl-2
-              min-h-[40px] max-h-[200px] overflow-y-auto
+              min-h-[40px] overflow-y-auto
             "
             style={{ outline: 'none' }}
           />
