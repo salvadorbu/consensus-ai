@@ -1,5 +1,6 @@
 import React from 'react';
-import { SquarePen, LogIn, UserCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import ReactDOM from 'react-dom';
+import { SquarePen, LogIn, UserCircle, LogOut, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ChatHistory from './ChatHistory';
@@ -14,8 +15,36 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, toggleCollapsed }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { selectChat } = useChatContext();
+
+  // State to handle profile popover visibility and position
+  const [showProfileMenu, setShowProfileMenu] = React.useState(false);
+  const [menuPos, setMenuPos] = React.useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const profileBtnRef = React.useRef<HTMLButtonElement | null>(null);
+
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (!showProfileMenu) return;
+      const target = e.target as Node;
+      if (profileBtnRef.current && !profileBtnRef.current.contains(target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, [showProfileMenu]);
+
+  const toggleProfileMenu = () => {
+    if (profileBtnRef.current) {
+      const rect = profileBtnRef.current.getBoundingClientRect();
+      // Position the menu slightly above and to the right of the button (main content area)
+      setMenuPos({ top: rect.top - 90, left: rect.left + (rect.width / 2) - 88 });
+    }
+    setShowProfileMenu(prev => !prev);
+  };
+  
 
   const handleNewChat = () => {
     selectChat(''); // empty string resets to welcome view
@@ -69,19 +98,53 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
       <div className="p-4 border-t border-gray-700">
         <div className={`flex ${isCollapsed ? 'flex-col items-center space-y-4' : 'justify-center'}`}>
           <button
+            ref={profileBtnRef}
             onClick={() => {
-              if (isAuthenticated) {
-                navigate('/profile');
-              } else {
+              if (!isAuthenticated) {
                 navigate('/signin');
+                closeSidebar();
+                return;
               }
-              closeSidebar();
+              toggleProfileMenu();
             }}
-            className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors relative"
             title={isAuthenticated ? 'Profile' : 'Sign In'}
           >
             {isAuthenticated ? <UserCircle size={20} /> : <LogIn size={20} />}
           </button>
+
+          {/* Profile popover */}
+          {showProfileMenu && (
+            ReactDOM.createPortal(
+              <div
+                className="fixed z-50 bg-gray-800 text-gray-200 border border-gray-700 rounded-md shadow-lg w-44"
+                style={{ top: menuPos.top, left: menuPos.left }}
+              >
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors"
+                  onClick={() => {
+                    navigate('/settings/profile');
+                    setShowProfileMenu(false);
+                    closeSidebar();
+                  }}
+                >
+                  Settings
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-700 text-red-400 hover:text-red-300 transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    logout();
+                    setShowProfileMenu(false);
+                    closeSidebar();
+                    navigate('/');
+                  }}
+                >
+                  <LogOut size={16} /> Logout
+                </button>
+              </div>,
+              document.body
+            )
+          )}
         </div>
       </div>
     </div>
