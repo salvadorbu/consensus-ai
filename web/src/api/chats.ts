@@ -24,6 +24,7 @@ export interface Message {
 }
 
 import type { ConsensusChannel } from '../types/consensus';
+import { request } from './request';
 
 export interface ChatWithMessages extends Chat {
   messages: Message[];
@@ -46,49 +47,12 @@ export interface UserMessageCreateDto {
   use_consensus?: boolean;
   guiding_model?: string;
   participant_models?: string[];
+  profile_id?: string;
   max_rounds?: number;
 }
 
-// -----------------------------------------------------------------------------
-// Low-level helper around fetch()
-// -----------------------------------------------------------------------------
 
-const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL?.replace(/\/$/, '') ||
-  'http://localhost:8000';
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: 'include',
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init.headers || {}),
-    },
-  });
-
-  if (!res.ok) {
-    // Attempt to extract error detail from FastAPI response
-    let detail: string;
-    try {
-      const data = await res.json();
-      detail = data?.detail ?? res.statusText;
-    } catch {
-      detail = res.statusText;
-    }
-    throw new Error(`API ${res.status}: ${detail}`);
-  }
-
-  // 204 (No Content) – e.g. DELETE chat
-  if (res.status === 204) {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return undefined as unknown as T;
-  }
-
-  return res.json() as Promise<T>;
-}
-
-// -----------------------------------------------------------------------------
 // Public helper functions (CRUD + messaging)
 // -----------------------------------------------------------------------------
 

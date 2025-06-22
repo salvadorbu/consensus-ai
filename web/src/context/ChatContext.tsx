@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import { ChatSession, AIModel } from '../types';
 import type { MessageRole } from '../types/index';
 import {
@@ -19,6 +20,7 @@ import {
 } from '../api/chats';
 
 import { useConsensusSettings } from './ConsensusContext';
+import { useProfiles } from './ProfilesContext';
 
 // Define context interface
 interface ChatContextType {
@@ -55,6 +57,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(false);
   const [isAgentBusy, setIsAgentBusy] = useState(false);
   const [busyChatId, setBusyChatId] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   // Routing helpers
   const navigate = useNavigate();
@@ -71,6 +74,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [location.pathname]);
 
   const { guidingModel, participantModels } = useConsensusSettings();
+  const { selectedProfileId } = useProfiles();
 
   // Load available models from models.json
   useEffect(() => {
@@ -85,7 +89,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .catch(() => setAvailableModels([]));
   }, []);
 
-  // Fetch chats on mount
+  // Fetch chats once authenticated
   useEffect(() => {
     const fetchChats = async () => {
       setLoading(true);
@@ -104,8 +108,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setLoading(false);
       }
     };
+    if (!isAuthenticated) {
+      setChatSessions([]);
+      return;
+    }
     fetchChats();
-  }, []);
+  }, [isAuthenticated]);
 
   // When a chat is selected, fetch its messages
   // Track which chatIds have been fetched to avoid repeated fetching for empty chats
@@ -308,17 +316,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       );
 
       try {
-        const assistantMsg = await apiSendMessage(chatId!, {
-          content,
-          model: selectedModel.id,
-          use_consensus: true,
-          guiding_model: guidingModel?.id || selectedModel.id,
-          participant_models: participantModels
-            .filter((m): m is AIModel => m !== null)
-            .map(m => m.id),
-          max_rounds: 6,
-        });
+        const payload = selectedProfileId
+          ? {
+              content,
+              model: selectedModel.id,
+              use_consensus: true,
+              profile_id: selectedProfileId,
+            }
+          : {
+              content,
+              model: selectedModel.id,
+              use_consensus: true,
+              guiding_model: guidingModel?.id || selectedModel.id,
+              participant_models: participantModels
+                .filter((m): m is AIModel => m !== null)
+                .map(m => m.id),
+              max_rounds: 6,
+            } as any;
 
+        const assistantMsg = await apiSendMessage(chatId!, payload);
+        
         // Replace optimistic placeholder with backend placeholder
         setChatSessions(prev =>
           prev.map(chat =>

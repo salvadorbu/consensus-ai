@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { User, CreditCard, Settings as SettingsIcon, Layers, Trash2 } from 'lucide-react';
 import DropdownModelSelector from './DropdownModelSelector';
 import { useConsensusSettings } from '../../context/ConsensusContext';
+import { useProfiles } from '../../context/ProfilesContext';
+import { Plus, Edit2 } from 'lucide-react';
 
 interface SettingsModalProps {
   open: boolean;
@@ -16,7 +18,116 @@ const sectionList = [
   { key: 'billing', label: 'Billing', icon: <CreditCard size={18} className="inline-block mr-2" /> },
 ];
 
+const ProfileSection: React.FC = () => {
+  const {
+    profiles,
+    selectedProfileId,
+    selectProfile,
+    createProfile,
+    updateProfile,
+    deleteProfile,
+  } = useProfiles();
+
+  const { guidingModel, participantModels } = useConsensusSettings();
+
+  const [creating, setCreating] = React.useState(false);
+  const [newName, setNewName] = React.useState('');
+
+  const handleCreate = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    try {
+      await createProfile({
+        name: trimmed,
+        guiding_model: guidingModel?.id || 'gpt-4o',
+        participant_models: participantModels
+          .filter((m): m is import('../../types').AIModel => m !== null)
+          .map(m => m.id),
+        max_rounds: 6,
+      });
+      setNewName('');
+      setCreating(false);
+    } catch (err) {
+      console.error('Create profile failed', err);
+    }
+  };
+
+  return (
+    <div className="mb-8">
+      <h4 className="text-base font-semibold mb-2 text-gray-100">Saved Profiles</h4>
+      <div className="space-y-2">
+        
+        {profiles.map(p => (
+          <div key={p.id} className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                checked={selectedProfileId === p.id}
+                onChange={() => selectProfile(p.id)}
+              />
+              <span>{p.name}</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <button
+                className="p-1 text-gray-400 hover:text-white"
+                onClick={() => {
+                  const newName = prompt('Rename profile', p.name);
+                  if (newName && newName.trim()) {
+                    void updateProfile(p.id, { name: newName.trim() });
+                  }
+                }}
+                title="Rename"
+              >
+                <Edit2 size={14} />
+              </button>
+              <button
+                className="p-1 text-red-500 hover:text-red-400"
+                onClick={() => {
+                  if (confirm('Delete profile?')) void deleteProfile(p.id);
+                }}
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {creating ? (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            className="flex-1 px-2 py-1 rounded bg-gray-800 border border-gray-700 text-sm"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            placeholder="Profile name"
+          />
+          <button
+            className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-sm"
+            onClick={handleCreate}
+          >
+            Save
+          </button>
+          <button
+            className="px-3 py-1 rounded bg-gray-700 text-sm"
+            onClick={() => setCreating(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          className="mt-3 flex items-center gap-1 text-blue-500 hover:text-blue-400 text-sm"
+          onClick={() => setCreating(true)}
+        >
+          <Plus size={14} /> Add new profile
+        </button>
+      )}
+    </div>
+  );
+};
+
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
+  const { selectedProfileId, updateProfile } = useProfiles();
   const navigate = useNavigate();
   const location = useLocation();
   type SectionKey = 'user' | 'general' | 'consensus' | 'billing';
@@ -97,13 +208,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               {selectedSection === 'consensus' && (
                 <section>
                   <h3 className="text-lg font-semibold mb-4 text-gray-100 flex items-center"><Layers size={18} className="inline-block mr-2" />Consensus</h3>
+
+                  {/* Profile selection */}
+                  <ProfileSection />
+
+                  <hr className="my-6 border-gray-700" />
+
+                  {/* Manual override UI */}
                   <div className="space-y-6">
                     <div className="mb-6 pb-6 border-b border-gray-700">
                       <h4 className="text-base font-semibold mb-2 text-gray-100">Guiding Agent</h4>
-                      <div className="mb-2 text-gray-400 text-sm">Configure the guiding agent for consensus rounds.</div>
+                      <div className="mb-2 text-gray-400 text-sm">Configure the guiding agent for consensus rounds (used when "Ad-hoc" profile selected).</div>
                       <DropdownModelSelector
                         value={selectedGuidingModel}
-                        onChange={setSelectedGuidingModel}
+                        onChange={m => {
+                          setSelectedGuidingModel(m);
+                          if (selectedProfileId && m) {
+                            void updateProfile(selectedProfileId, { guiding_model: m.id });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -112,7 +235,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                         <button
                           className={`ml-2 px-3 py-1.5 rounded-full border border-blue-500 text-blue-500 text-sm font-semibold bg-transparent hover:border-blue-400 hover:text-blue-400 disabled:border-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-all`}
                           onClick={() => {
-                            if (participantModels.length < 5) setParticipantModels([...participantModels, null]);
+                            if (participantModels.length < 5) {
+                              const updated = [...participantModels, null];
+                              setParticipantModels(updated);
+                              // do NOT persist until user selects a model
+                            }
                           }}
                           disabled={participantModels.length >= 5}
                           type="button"
@@ -127,15 +254,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                             <DropdownModelSelector
                               value={model}
                               onChange={m => {
-                                const newModels = [...participantModels];
-                                newModels[idx] = m;
-                                setParticipantModels(newModels);
-                              }}
+                                 const newModels = [...participantModels];
+                                 newModels[idx] = m;
+                                 setParticipantModels(newModels);
+                                 if (selectedProfileId && m) {
+                                   void updateProfile(selectedProfileId, {
+                                     participant_models: newModels
+                                       .filter((x): x is import('../../types').AIModel => x !== null)
+                                       .map(x => x.id),
+                                   });
+                                 }
+                               }}
                             />
                             <button
                               className="px-2 py-1.5 rounded-full border border-red-500 text-red-500 bg-transparent hover:border-red-400 hover:text-red-400 disabled:border-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                               onClick={() => {
-                                setParticipantModels(participantModels.filter((_, i) => i !== idx));
+                                const updated = participantModels.filter((_, i) => i !== idx);
+                                setParticipantModels(updated);
+                                if (selectedProfileId) {
+                                  void updateProfile(selectedProfileId, {
+                                    participant_models: updated
+                                      .filter((x): x is import('../../types').AIModel => x !== null)
+                                      .map(x => x.id),
+                                  });
+                                }
                               }}
                               type="button"
                               aria-label="Remove participant"

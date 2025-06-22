@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from typing import List
+from typing import List, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, delete, update
@@ -20,6 +20,8 @@ from ..schemas.chat import ChatCreate, ChatRead, ChatUpdate, ChatWithMessages
 from ..schemas.consensus_channel import ConsensusChannelRead
 from ..schemas.message import MessageRead, UserMessageCreate
 from ..agent import Agent
+from .user_router import get_current_user
+from ..schemas.user import UserOut
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +33,17 @@ router = APIRouter(prefix="/chats", tags=["chats"])
 
 
 @router.post("", response_model=ChatRead, status_code=status.HTTP_201_CREATED)
-async def create_chat(chat_in: ChatCreate, session: AsyncSession = Depends(get_session)):
+async def create_chat(
+    chat_in: ChatCreate,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """Create a new chat room."""
-    chat = Chat(name=chat_in.name, default_model=chat_in.default_model)
+    chat = Chat(
+        name=chat_in.name,
+        default_model=chat_in.default_model,
+        user_id=current_user.id,
+    )
     session.add(chat)
     await session.commit()
     await session.refresh(chat)
@@ -41,15 +51,26 @@ async def create_chat(chat_in: ChatCreate, session: AsyncSession = Depends(get_s
 
 
 @router.get("", response_model=List[ChatRead])
-async def list_chats(session: AsyncSession = Depends(get_session)):
+async def list_chats(
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """Return all chats ordered by creation date (descending)."""
-    result = await session.execute(select(Chat).order_by(Chat.created_at.desc()))
+    result = await session.execute(
+        select(Chat)
+        .where(Chat.user_id == current_user.id)
+        .order_by(Chat.created_at.desc())
+    )
     chats = result.scalars().all()
     return [ChatRead.model_validate(c) for c in chats]
 
 
 @router.get("/{chat_id}", response_model=ChatWithMessages)
-async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+async def get_chat(
+    chat_id: uuid.UUID,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """
     Return chat metadata **plus** its messages (ascending by time).
 
@@ -57,7 +78,7 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
     lazy loading errors in async SQLAlchemy. Always explicitly set the messages attribute.
     """
     chat = await session.get(Chat, chat_id)
-    if chat is None:
+    if chat is None or chat.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Chat not found")
 
     # Eager load messages ordered by timestamp
@@ -96,12 +117,15 @@ async def get_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
 @router.patch("/{chat_id}", response_model=ChatRead)
 async def update_chat(
-    chat_id: uuid.UUID, chat_in: ChatUpdate, session: AsyncSession = Depends(get_session)
+    chat_id: uuid.UUID,
+    chat_in: ChatUpdate,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
 ):
     """Partially update a chat's metadata."""
     stmt = (
         update(Chat)
-        .where(Chat.id == chat_id)
+        .where(Chat.id == chat_id, Chat.user_id == current_user.id)
         .values(**{k: v for k, v in chat_in.model_dump(exclude_none=True).items()})
         .returning(Chat)
     )
@@ -114,9 +138,13 @@ async def update_chat(
 
 
 @router.delete("/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_chat(chat_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+async def delete_chat(
+    chat_id: uuid.UUID,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """Remove a chat and **all** its messages."""
-    result = await session.execute(delete(Chat).where(Chat.id == chat_id))
+    result = await session.execute(delete(Chat).where(Chat.id == chat_id, Chat.user_id == current_user.id))
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Chat not found")
     await session.commit()
@@ -141,7 +169,10 @@ _chat_futures: dict[str, asyncio.Future] = {}
 
 @router.post("/{chat_id}/messages", response_model=MessageRead, status_code=status.HTTP_201_CREATED)
 async def send_message(
-    chat_id: uuid.UUID, msg_in: UserMessageCreate, session: AsyncSession = Depends(get_session)
+    chat_id: uuid.UUID,
+    msg_in: UserMessageCreate,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
 ):
     """Send a *user* message and return the assistant response (both stored)."""
 
@@ -151,7 +182,7 @@ async def send_message(
     _chat_busy[str(chat_id)] = True
     try:
         chat = await session.get(Chat, chat_id)
-        if chat is None:
+        if chat is None or chat.user_id != current_user.id:
             _chat_busy[str(chat_id)] = False
             raise HTTPException(status_code=404, detail="Chat not found")
 
@@ -180,15 +211,26 @@ async def send_message(
         # ------------------------------
         # CONSENSUS path
         # ------------------------------
-        if msg_in.use_consensus:
-            guiding = msg_in.guiding_model or chat.default_model
-            participants = msg_in.participant_models or [chat.default_model]
+        if msg_in.use_consensus or msg_in.profile_id is not None:
+            # Resolve consensus parameters
+            if msg_in.profile_id:
+                from ..models.consensus_profile import ConsensusProfile
+                prof = await session.get(ConsensusProfile, msg_in.profile_id)
+                if prof is None or prof.user_id != current_user.id:
+                    raise HTTPException(status_code=404, detail="Profile not found")
+                guiding = prof.guiding_model
+                participants = prof.participant_models
+                rounds = prof.max_rounds
+            else:
+                guiding = msg_in.guiding_model or chat.default_model
+                participants = msg_in.participant_models or [chat.default_model]
+                rounds = msg_in.max_rounds or 8
             from ..services.consensus_service import spawn_channel  # local import to avoid cycles
             channel_id = await spawn_channel(
                 task=msg_in.content,
                 guiding_model=guiding,
                 participant_models=participants,
-                max_rounds=msg_in.max_rounds or 8,
+                max_rounds=rounds,
                 chat_id=chat_id,
                 session=session,
             )
@@ -247,7 +289,11 @@ async def send_message(
 
 
 @router.get("/{chat_id}/messages", response_model=List[MessageRead])
-async def list_messages(chat_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+async def list_messages(
+    chat_id: uuid.UUID,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """Return all messages for a chat ordered by creation time ascending."""
     result = await session.execute(
         select(Message).options(selectinload(Message.channel)).where(Message.chat_id == chat_id).order_by(Message.created_at.asc())
@@ -255,7 +301,8 @@ async def list_messages(chat_id: uuid.UUID, session: AsyncSession = Depends(get_
     messages = result.scalars().all()
     if not messages:
         # Validate chat exists
-        if await session.get(Chat, chat_id) is None:
+        chat = await session.get(Chat, chat_id)
+        if chat is None or chat.user_id != current_user.id:
             raise HTTPException(status_code=404, detail="Chat not found")
     message_dtos: list[MessageRead] = []
     for m in messages:
@@ -269,8 +316,16 @@ async def list_messages(chat_id: uuid.UUID, session: AsyncSession = Depends(get_
 
 
 @router.post("/{chat_id}/cancel", status_code=status.HTTP_202_ACCEPTED)
-async def cancel_chat(chat_id: uuid.UUID):
+async def cancel_chat(
+    chat_id: uuid.UUID,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
     """Attempt to cancel an in-flight generation for this chat."""
+    chat = await session.get(Chat, chat_id)
+    if chat is None or chat.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
     fut = _chat_futures.get(str(chat_id))
     if fut and not fut.done():
         fut.cancel()

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Settings } from 'lucide-react';
 import ModelSelector from './ModelSelector';
+import ProfileSelector from './ProfileSelector';
 import ConsensusButton from './ConsensusButton';
 import { useChatContext } from '../../context/ChatContext';
 
@@ -93,7 +94,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
 
           <div className="flex items-center justify-between mt-2 text-gray-400">
             <div className="flex items-center space-x-2">
-              <ModelSelector disabled={useConsensus} />
+              {useConsensus ? (
+                <ProfileSelector />
+              ) : (
+                <ModelSelector disabled={false} />
+              )}
               <ConsensusButton active={useConsensus} onClick={() => setUseConsensus(!useConsensus)} />
             </div>
 

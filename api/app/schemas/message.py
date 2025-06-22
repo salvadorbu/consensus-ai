@@ -20,6 +20,10 @@ class UserMessageCreate(BaseModel):
     guiding_model: Optional[str] = Field(None, description="Model for guiding agent (if consensus)")
     participant_models: Optional[list[str]] = Field(None, description="Participant agent models (if consensus)")
     max_rounds: Optional[int] = Field(8, ge=1, le=20, description="Max consensus rounds")
+    profile_id: Optional[uuid.UUID] = Field(
+        None,
+        description="ID of a saved consensus profile to apply (overrides guiding/participants/max_rounds).",
+    )
 
 class MessageRead(BaseModel):
     """Representation of a stored message returned to the client."""

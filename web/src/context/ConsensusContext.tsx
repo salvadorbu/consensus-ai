@@ -1,10 +1,12 @@
 import React, {
+  
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
 } from 'react';
+import { useProfiles } from './ProfilesContext';
 import { AIModel } from '../types';
 
 // -----------------------------------------------------------------------------
@@ -12,6 +14,10 @@ import { AIModel } from '../types';
 // -----------------------------------------------------------------------------
 
 interface ConsensusContextType {
+  // Currently selected profile OR manual settings
+  selectedProfileId: string | null;
+  selectProfile: (id: string | null) => void;
+
   guidingModel: AIModel | null;
   participantModels: (AIModel | null)[];
   setGuidingModel: (model: AIModel | null) => void;
@@ -20,37 +26,32 @@ interface ConsensusContextType {
 
 const ConsensusContext = createContext<ConsensusContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'consensus_settings_v1';
+
 
 export const ConsensusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { profiles, selectedProfileId, selectProfile } = useProfiles();
   const [guidingModel, setGuidingModel] = useState<AIModel | null>(null);
   const [participantModels, setParticipantModels] = useState<(AIModel | null)[]>([]);
 
-  // Load persisted settings on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed.guidingModel) setGuidingModel(parsed.guidingModel);
-        if (Array.isArray(parsed.participantModels)) setParticipantModels(parsed.participantModels);
-      }
-    } catch {
-      /* ignore malformed localStorage */
-    }
-  }, []);
+  
 
-  // Persist settings whenever they change
+  // Derive overrides from selected profile if any
   useEffect(() => {
-    try {
-      const data = JSON.stringify({ guidingModel, participantModels });
-      localStorage.setItem(STORAGE_KEY, data);
-    } catch {
-      /* ignore */
+    if (!selectedProfileId) return;
+    const prof = profiles.find(p => p.id === selectedProfileId);
+    if (prof) {
+      setGuidingModel({ id: prof.guiding_model, name: prof.guiding_model, description: '' });
+      setParticipantModels(
+        prof.participant_models.map(m => ({ id: m, name: m, description: '' })) as AIModel[],
+      );
     }
-  }, [guidingModel, participantModels]);
+  }, [selectedProfileId, profiles]);
+
+  
 
   const value: ConsensusContextType = {
+    selectedProfileId,
+    selectProfile,
     guidingModel,
     participantModels,
     setGuidingModel,
