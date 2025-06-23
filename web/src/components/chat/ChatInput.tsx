@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Settings } from 'lucide-react';
 import ModelSelector from './ModelSelector';
+import { useAuth } from '../../context/AuthContext';
 import ProfileSelector from './ProfileSelector';
 import ConsensusButton from './ConsensusButton';
 import { useChatContext } from '../../context/ChatContext';
@@ -13,6 +14,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
   const [inputValue, setInputValue] = useState('');
   const [useConsensus, setUseConsensus] = useState(false);
   const { sendMessage, isAgentBusy, cancelGeneration } = useChatContext();
+  const { isAuthenticated } = useAuth();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -103,14 +105,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <button 
-                type="button" 
-                className="p-1.5 rounded-md hover:bg-gray-700 transition-colors"
-                onClick={onOpenSettings}
-                aria-label="Open settings"
-              >
-                <Settings size={16} />
-              </button>
+              {isAuthenticated && (
+                <button 
+                  type="button" 
+                  className="p-1.5 rounded-md hover:bg-gray-700 transition-colors"
+                  onClick={onOpenSettings}
+                  aria-label="Open settings"
+                >
+                  <Settings size={16} />
+                </button>
+              )}
               <button 
                 type="submit" 
                 disabled={!inputValue.trim() || isAgentBusy}

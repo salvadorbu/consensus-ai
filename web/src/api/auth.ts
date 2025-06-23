@@ -51,3 +51,12 @@ export const registerUser = async (data: UserRegisterInput): Promise<void> => {
   });
   if (!res.ok) throw new Error('Registration failed');
 };
+
+// Fetch the current user using the access token (for restoring session)
+export const fetchCurrentUser = async (token: string): Promise<User> => {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error('Failed to fetch user');
+  return res.json();
+};

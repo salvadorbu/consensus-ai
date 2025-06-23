@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { loginUser, registerUser, UserLoginInput, UserRegisterInput, User } from '../api/auth'
+import { loginUser, registerUser, fetchCurrentUser, UserLoginInput, UserRegisterInput, User } from '../api/auth'
+import { deleteUserAccount } from '../api/users'
 
 interface AuthContextType {
   user: User | null;
@@ -7,6 +8,7 @@ interface AuthContextType {
   login: (data: UserLoginInput) => Promise<void>;
   register: (data: UserRegisterInput) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -26,6 +28,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [token]);
 
+  // Restore user from backend if token exists but user is null
+  useEffect(() => {
+    if (token && !user) {
+      fetchCurrentUser(token)
+        .then(u => setUser(u))
+        .catch(() => {
+          setToken(null);
+          setUser(null);
+        });
+    }
+  }, [token]);
+
   const login = async (data: UserLoginInput) => {
     const resp = await loginUser(data);
     setToken(resp.access_token);
@@ -38,13 +52,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await login({ email: data.email, password: data.password });
   };
 
+  const deleteAccount = async () => {
+    if (!token) return;
+    await deleteUserAccount(token);
+    logout();
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, deleteAccount, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

@@ -20,3 +20,9 @@ async def create_user(session: AsyncSession, email: str, password: str) -> User:
     await session.commit()
     await session.refresh(db_user)
     return db_user
+
+
+async def delete_user(session: AsyncSession, user: User) -> None:
+    """Delete *user* and commit transaction."""
+    await session.delete(user)
+    await session.commit()

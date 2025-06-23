@@ -6,7 +6,6 @@ interface ProfileSelectorProps {
   className?: string;
 }
 
-/** Dropdown that lets the user pick a ConsensusProfile or a profile. */
 const ProfileSelector: React.FC<ProfileSelectorProps> = ({ className = '' }) => {
   const { profiles, selectedProfileId, selectProfile } = useProfiles();
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +20,6 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ className = '' }) => 
     setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {

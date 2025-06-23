@@ -73,3 +73,17 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
 async def read_current_user(current_user: Annotated[UserOut, Depends(get_current_user)]):
     """Return the authenticated user's profile."""
     return current_user
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_current_user(
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+):
+    """Delete the authenticated user's account and related data."""
+    # Fetch ORM instance
+    db_user = await session.get(user_service.User, current_user.id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    await user_service.delete_user(session, db_user)
+    return None

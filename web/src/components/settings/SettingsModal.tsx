@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, CreditCard, Settings as SettingsIcon, Layers, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import DropdownModelSelector from './DropdownModelSelector';
 import { useConsensusSettings } from '../../context/ConsensusContext';
 import { useProfiles } from '../../context/ProfilesContext';
@@ -127,6 +128,7 @@ const ProfileSection: React.FC = () => {
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
+  const { user, deleteAccount } = useAuth();
   const { selectedProfileId, updateProfile } = useProfiles();
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,9 +155,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         onClick={e => e.stopPropagation()}
         style={{
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-          minHeight: '700px', // 30-40% taller than before
-          height: '820px',    // fixed height for modal
-          maxHeight: '90vh',  // prevent overflow on very small screens
+          minHeight: '700px',
+          height: '820px',
+          maxHeight: '90vh',
         }}
       >
 
@@ -194,7 +196,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               {selectedSection === 'user' && (
                 <section>
                   <h3 className="text-lg font-semibold mb-2 text-gray-100 flex items-center"><User size={18} className="inline-block mr-2" />Profile</h3>
-                  <div className="text-gray-400">(Coming soon: manage your user profile and preferences.)</div>
+                  {user ? (
+                    <div className="space-y-4">
+                      <p>Email: <span className="text-blue-400">{user.email}</span></p>
+                      <p>Joined: {new Date(user.created_at).toLocaleDateString()}</p>
+                      <button
+                        className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm"
+                        onClick={() => {
+                          if (confirm('Delete account? This action is irreversible.')) {
+                            void deleteAccount().then(() => navigate('/'));
+                          }
+                        }}
+                      >
+                        Delete Account
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-gray-400">Not logged in.</div>
+                  )}
                 </section>
               )}
               {selectedSection === 'billing' && (
@@ -213,12 +232,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 <section>
                   <h3 className="text-lg font-semibold mb-4 text-gray-100 flex items-center"><Layers size={18} className="inline-block mr-2" />Consensus</h3>
 
-                  {/* Profile selection */}
                   <ProfileSection />
 
                   <hr className="my-6 border-gray-700" />
 
-                  {/* Manual override UI */}
                   <div className="space-y-6">
                     <div className="mb-6 pb-6 border-b border-gray-700">
                       <h4 className="text-base font-semibold mb-2 text-gray-100">Guiding Agent</h4>
