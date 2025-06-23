@@ -144,9 +144,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-in">
+    <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 animate-in"
+        onClick={onClose}
+      >
       <div
         className="relative w-full max-w-[48rem] mx-4 rounded-2xl p-0 shadow-2xl border-2 border-blue-500 bg-gray-900 rounded-2xl"
+        onClick={e => e.stopPropagation()}
         style={{
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
           minHeight: '700px', // 30-40% taller than before
@@ -218,7 +222,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                   <div className="space-y-6">
                     <div className="mb-6 pb-6 border-b border-gray-700">
                       <h4 className="text-base font-semibold mb-2 text-gray-100">Guiding Agent</h4>
-                      <div className="mb-2 text-gray-400 text-sm">Configure the guiding agent for consensus rounds (used when "Ad-hoc" profile selected).</div>
+                      <div className="mb-2 text-gray-400 text-sm">Configure the guiding agent when no profile is selected.</div>
                       <DropdownModelSelector
                         value={selectedGuidingModel}
                         onChange={m => {
