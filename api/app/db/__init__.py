@@ -33,7 +33,12 @@ metadata_obj = MetaData(naming_convention=NAMING_CONVENTION)
 Base: DeclarativeMeta = declarative_base(metadata=metadata_obj)
 
 # Create async engine & session factory
-engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+engine = create_async_engine(
+    DATABASE_URL,
+    connect_args={"ssl": "require"},
+    future=True,
+    echo=False,
+)
 async_session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
