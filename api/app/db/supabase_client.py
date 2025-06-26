@@ -31,7 +31,7 @@ def _init_client() -> SupabaseClient:
     """
 
     url: str | None = os.getenv("SUPABASE_URL")
-    key: str | None = os.getenv("SUPABASE_KEY")  # service or anon key
+    key: str | None = os.getenv("SUPABASE_KEY")  # must be secret key
 
     if not url or not key:
         raise RuntimeError(

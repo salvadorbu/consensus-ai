@@ -131,11 +131,6 @@ async def delete_chat(
 # ---------------------------------------------------------------------------
 
 
-async def _call_agent(model: str, messages: list[dict[str, str]]) -> str | None:
-    """Helper to run *Agent.chat* in a thread pool to avoid blocking the event loop."""
-
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, Agent(model).chat, messages)
 
 
 # In-memory busy state per chat
@@ -259,8 +254,8 @@ async def cancel_chat(
     client: SupabaseClient = Depends(get_supabase_client),
 ):
     """Attempt to cancel an in-flight generation for this chat."""
-    chat = await session.get(Chat, chat_id)
-    if chat is None or chat.user_id != current_user.id:
+    row_chat = await chat_service.get_chat(client, chat_id)
+    if row_chat is None or row_chat["user_id"] != str(current_user.id):
         raise HTTPException(status_code=404, detail="Chat not found")
 
     fut = _chat_futures.get(str(chat_id))

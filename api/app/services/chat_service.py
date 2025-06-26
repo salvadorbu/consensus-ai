@@ -49,7 +49,8 @@ def _update_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.UUID,
     return resp.data[0] if resp.data else None
 
 
-def _delete_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.UUID) -> int:
+def _delete_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+    """Return True when at least one row matches and is deleted."""
     resp = (
         client.table(CHAT_TABLE)
         .delete()
@@ -57,7 +58,7 @@ def _delete_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.UUID)
         .eq("user_id", str(user_id))
         .execute()
     )
-    return resp.count or 0
+    return bool(resp.data)
 
 # ---------------------------------------------------------------------------
 # Public async helpers
@@ -81,5 +82,4 @@ async def update_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.
 
 
 async def delete_chat(client: SupabaseClient, chat_id: uuid.UUID, user_id: uuid.UUID) -> bool:
-    deleted = await asyncio.to_thread(_delete_chat, client, chat_id, user_id)
-    return deleted > 0
+    return await asyncio.to_thread(_delete_chat, client, chat_id, user_id)

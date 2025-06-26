@@ -28,7 +28,7 @@ def _select_single(client: SupabaseClient, **filters: Any) -> Dict[str, Any] | N
     return resp.data[0] if resp.data else None
 
 
-aasyncio = asyncio  # tooling bug workaround (ensures asyncio is recognised)
+# removed unused alias
 
 async def get_user_by_email(client: SupabaseClient, email: str):
     return await asyncio.to_thread(_select_single, client, email=email)
