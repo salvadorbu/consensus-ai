@@ -21,7 +21,12 @@ init_routers(app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # CORS: specify allowed origins – wildcard not allowed when allow_credentials=True
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://consensus-ai.pages.dev",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

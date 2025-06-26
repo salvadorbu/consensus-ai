@@ -3,11 +3,11 @@ from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
+from supabase import Client as SupabaseClient
 
-from ..db import get_session
-from ..models.consensus_channel import ConsensusChannel
-from ..models.chat import Chat
+from ..db.supabase_client import get_supabase_client
+# models module no longer used
+#
 from ..services.consensus_service import spawn_channel, get_channel_status
 
 router = APIRouter(prefix="/channels", tags=["channels"])
@@ -30,27 +30,26 @@ class ChannelStatusResponse(BaseModel):
 
 @router.post("/", response_model=dict)
 async def create_channel(
-    req: CreateChannelRequest, session: AsyncSession = Depends(get_session)
+    req: CreateChannelRequest, client: SupabaseClient = Depends(get_supabase_client)
 ):
-    if req.chat_id and await session.get(Chat, req.chat_id) is None:
-        raise HTTPException(status_code=404, detail="Chat not found")
+    # TODO: optionally verify chat existence via Supabase
 
-    channel_id = await spawn_channel(
+    channel_id = await spawn_channel(client=client,
         task=req.task,
         guiding_model=req.guiding_model,
         participant_models=req.participant_models,
         max_rounds=req.max_rounds,
         chat_id=req.chat_id,
-        session=session,
+        #
     )
     return {"channel_id": channel_id}
 
 
 @router.get("/{channel_id}", response_model=ChannelStatusResponse)
 async def get_channel_status_endpoint(
-    channel_id: str, session: AsyncSession = Depends(get_session)
+    channel_id: str, client: SupabaseClient = Depends(get_supabase_client)
 ):
-    cache = get_channel_status(channel_id)
+    cache = await get_channel_status(client, channel_id)
     if cache and cache["status"] != "pending":
         return ChannelStatusResponse(
             status=cache["status"],
@@ -59,13 +58,6 @@ async def get_channel_status_endpoint(
             error=cache.get("error"),
         )
 
-    row = await session.get(ConsensusChannel, channel_id)
-    if row is None:
+    if cache is None:
         raise HTTPException(status_code=404, detail="Channel not found")
-
-    return ChannelStatusResponse(
-        status=row.status,
-        rounds_executed=row.rounds_executed or 0,
-        answer=row.answer,
-        error=row.answer if row.status == "error" else None,
-    )
+    return ChannelStatusResponse(**cache)

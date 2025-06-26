@@ -6,11 +6,10 @@ import uuid
 from typing import List, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, delete, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from supabase import Client as SupabaseClient
 
-from ..db import get_session
-from ..models.consensus_profile import ConsensusProfile
+from ..db.supabase_client import get_supabase_client
+from ..services import consensus_profile_service as profile_service
 from ..schemas.consensus_profile import (
     ConsensusProfileCreate,
     ConsensusProfileRead,
@@ -32,37 +31,31 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 async def create_profile(
     profile_in: ConsensusProfileCreate,
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    session: AsyncSession = Depends(get_session),
+    client: SupabaseClient = Depends(get_supabase_client),
 ):
-    profile = ConsensusProfile(user_id=current_user.id, **profile_in.model_dump())
-    session.add(profile)
-    await session.commit()
-    await session.refresh(profile)
-    return ConsensusProfileRead.model_validate(profile)
+    row = await profile_service.create_profile(client, current_user.id, profile_in.model_dump())
+    return ConsensusProfileRead.model_validate(row)
 
 
 @router.get("", response_model=List[ConsensusProfileRead])
 async def list_profiles(
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    session: AsyncSession = Depends(get_session),
+    client: SupabaseClient = Depends(get_supabase_client),
 ):
-    result = await session.execute(
-        select(ConsensusProfile).where(ConsensusProfile.user_id == current_user.id).order_by(ConsensusProfile.created_at.desc())
-    )
-    profiles = result.scalars().all()
-    return [ConsensusProfileRead.model_validate(p) for p in profiles]
+    rows = await profile_service.list_profiles(client, current_user.id)
+    return [ConsensusProfileRead.model_validate(r) for r in rows]
 
 
 @router.get("/{profile_id}", response_model=ConsensusProfileRead)
 async def get_profile(
     profile_id: uuid.UUID,
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    session: AsyncSession = Depends(get_session),
+    client: SupabaseClient = Depends(get_supabase_client),
 ):
-    profile = await session.get(ConsensusProfile, profile_id)
-    if profile is None or profile.user_id != current_user.id:
+    row = await profile_service.get_profile(client, profile_id, current_user.id)
+    if row is None:
         raise HTTPException(status_code=404, detail="Profile not found")
-    return ConsensusProfileRead.model_validate(profile)
+    return ConsensusProfileRead.model_validate(row)
 
 
 @router.patch("/{profile_id}", response_model=ConsensusProfileRead)
@@ -70,33 +63,21 @@ async def update_profile(
     profile_id: uuid.UUID,
     profile_in: ConsensusProfileUpdate,
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    session: AsyncSession = Depends(get_session),
+    client: SupabaseClient = Depends(get_supabase_client),
 ):
-    stmt = (
-        update(ConsensusProfile)
-        .where(ConsensusProfile.id == profile_id, ConsensusProfile.user_id == current_user.id)
-        .values(**{k: v for k, v in profile_in.model_dump(exclude_none=True).items()})
-        .returning(ConsensusProfile)
-    )
-    result = await session.execute(stmt)
-    profile = result.scalar_one_or_none()
-    if profile is None:
+    updates = {k: v for k, v in profile_in.model_dump(exclude_none=True).items()}
+    row = await profile_service.update_profile(client, profile_id, current_user.id, updates)
+    if row is None:
         raise HTTPException(status_code=404, detail="Profile not found")
-    await session.commit()
-    return ConsensusProfileRead.model_validate(profile)
+    return ConsensusProfileRead.model_validate(row)
 
 
 @router.delete("/{profile_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_profile(
     profile_id: uuid.UUID,
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    session: AsyncSession = Depends(get_session),
+    client: SupabaseClient = Depends(get_supabase_client),
 ):
-    result = await session.execute(
-        delete(ConsensusProfile).where(
-            ConsensusProfile.id == profile_id, ConsensusProfile.user_id == current_user.id
-        )
-    )
-    if result.rowcount == 0:
+    deleted = await profile_service.delete_profile(client, profile_id, current_user.id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Profile not found")
-    await session.commit()
