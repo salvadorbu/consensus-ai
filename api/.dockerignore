@@ -1,0 +1,28 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.egg-info/
+.venv/
+**/venv/
+pip-wheel-metadata/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Docs & tests
+docs/
+tests/
+
+# Large artifacts
+*.log
+*.sqlite
+coverage*

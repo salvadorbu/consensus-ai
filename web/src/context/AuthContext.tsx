@@ -18,7 +18,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
   const [user, setUser] = useState<User | null>(null);
 
-  const isAuthenticated = Boolean(token);
+  // A user is considered authenticated only when we have both a valid token
+  // AND we have successfully fetched the current user object. This prevents
+  // other parts of the frontend (e.g. ChatContext, ProfilesContext) from
+  // attempting to query protected resources with an expired or invalid
+  // token before we confirm it is valid.
+  const isAuthenticated = Boolean(token && user);
 
   useEffect(() => {
     if (token) {
@@ -42,6 +47,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (data: UserLoginInput) => {
     const resp = await loginUser(data);
+    // Persist token to localStorage immediately so that upcoming API calls
+    // issued in the same render cycle already include the Authorization
+    // header (config.authHeaders reads directly from localStorage).
+    localStorage.setItem('access_token', resp.access_token);
     setToken(resp.access_token);
     setUser(resp.user);
   };
@@ -59,6 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
+    localStorage.removeItem('access_token');
     setToken(null);
     setUser(null);
   };
