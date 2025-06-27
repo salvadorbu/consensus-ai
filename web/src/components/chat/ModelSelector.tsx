@@ -68,16 +68,23 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
       if (pageNum === 1) {
         setModels(data.results);
       } else {
-        setModels(prev => [...prev, ...data.results]);
+        setModels(prev => [...prev.filter(model => !data.results.find(m => m.id === model.id)), ...data.results]);
       }
       setTotal(data.total);
       if (!selectedModel?.id && data.default_model && !controlled) {
         setSelectedModel(data.default_model);
       }
     } catch (err: any) {
-      console.error('Model fetch failed', err?.message ?? err);
-      setModels([]);
-      setTotal(0);
+      // If the backend returns 404 (no models match the query) treat it as an empty result set
+      if (typeof err?.message === 'string' && err.message.includes('404')) {
+        setModels([]);
+        setTotal(0);
+      } else {
+        // Log unexpected errors to aid debugging
+        console.error('Model fetch failed', err?.message ?? err);
+        setModels([]);
+        setTotal(0);
+      }
     } finally {
       setLoading(false);
     }
