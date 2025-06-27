@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, CreditCard, Settings as SettingsIcon, Layers, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import DropdownModelSelector from './DropdownModelSelector';
+import ModelSelector from '../chat/ModelSelector';
 import { useConsensusSettings } from '../../context/ConsensusContext';
 import { useProfiles } from '../../context/ProfilesContext';
 import { Plus, Edit2 } from 'lucide-react';
@@ -240,7 +240,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                     <div className="mb-6 pb-6 border-b border-gray-700">
                       <h4 className="text-base font-semibold mb-2 text-gray-100">Guiding Agent</h4>
                       <div className="mb-2 text-gray-400 text-sm">Configure the guiding agent when no profile is selected.</div>
-                      <DropdownModelSelector
+                      <ModelSelector
                         value={selectedGuidingModel}
                         onChange={m => {
                           setSelectedGuidingModel(m);
@@ -272,7 +272,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                       <div className="flex flex-col gap-2">
                         {participantModels.map((model, idx) => (
                           <div key={idx} className="flex items-center gap-2 w-full justify-between">
-                            <DropdownModelSelector
+                            <ModelSelector
                               value={model}
                               onChange={m => {
                                  const newModels = [...participantModels];
