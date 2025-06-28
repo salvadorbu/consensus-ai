@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from .logging_config import setup_logging
 setup_logging()
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # Routers
 from .routers import init_app as init_routers
@@ -18,6 +19,8 @@ app = FastAPI(
 # Register modular routers (e.g., Chat API)
 # ---------------------------------------------------------------------------
 init_routers(app)
+
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 app.add_middleware(
     CORSMiddleware,

@@ -76,17 +76,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { guidingModel, participantModels } = useConsensusSettings();
   const { selectedProfileId } = useProfiles();
 
-  // Load available models from models.json
+  // Load available models from backend paginated endpoint
   useEffect(() => {
-    fetch('/data/models.json')
-      .then(res => res.json())
-      .then(data => {
+    (async () => {
+      try {
+        // Fetch first 100 models (adjust as needed)
+        const resp = await (await import('../api/models')).listModels({ page: 1, limit: 100 });
+        const data = resp.results;
         setAvailableModels(data);
-        // Prefer anthropic/claude-3.7-sonnet if present
         const defaultModel = data.find((m: AIModel) => m.id === 'anthropic/claude-3.7-sonnet') || data[0];
         if (defaultModel) setSelectedModel(defaultModel);
-      })
-      .catch(() => setAvailableModels([]));
+      } catch (err) {
+        console.error('Failed to load models:', err);
+        setAvailableModels([]);
+      }
+    })();
   }, []);
 
   // Fetch chats once authenticated
