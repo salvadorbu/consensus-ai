@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -18,6 +19,7 @@ import {
   sendMessage as apiSendMessage,
   cancelRequest,
 } from '../api/chats';
+import { API_BASE, authHeaders } from '../api/config';
 
 import { useConsensusSettings } from './ConsensusContext';
 import { useProfiles } from './ProfilesContext';
@@ -57,6 +59,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(false);
   const [isAgentBusy, setIsAgentBusy] = useState(false);
   const [busyChatId, setBusyChatId] = useState<string | null>(null);
+  // Keep reference to current AbortController so we can cancel fetch stream
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { isAuthenticated } = useAuth();
 
   // Routing helpers
@@ -404,18 +408,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               clearInterval(intervalId);
               setIsAgentBusy(false);
               setBusyChatId(null);
+      abortControllerRef.current = null;
             }
           } catch (err) {
             console.error('Consensus polling failed', err);
             clearInterval(intervalId);
             setIsAgentBusy(false);
             setBusyChatId(null);
+      abortControllerRef.current = null;
           }
         }, pollIntervalMs);
       } catch (err) {
         console.error('Failed to send consensus message:', err);
         setIsAgentBusy(false);
         setBusyChatId(null);
+      abortControllerRef.current = null;
       }
 
       return; // Skip chat message API flow
@@ -424,36 +431,85 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Default non-consensus flow
     try {
       setLoading(true);
-      const apiMsg = await apiSendMessage(chatId, {
-        content,
-        model: selectedModel.id,
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      const res = await fetch(`${API_BASE}/chats/${chatId}/messages/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders(),
+        },
+        body: JSON.stringify({ content, model: selectedModel.id }),
+        credentials: 'include',
+        signal: controller.signal,
       });
-      // 2. Add the bot's response
+
+      if (!res.ok || !res.body) {
+        throw new Error(`API ${res.status}: ${res.statusText}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+
+      // Insert placeholder assistant message
       setChatSessions(prev =>
-        prev.map(chat => {
-          if (chat.id === chatId) {
-            return {
-              ...chat,
-              messages: [...chat.messages, {
-                role: apiMsg.role,
-                content: apiMsg.content,
-                timestamp: new Date(apiMsg.created_at),
-                model: apiMsg.model,
-              }],
-              lastUpdated: new Date(),
-            };
-          }
-          return chat;
-        })
+        prev.map(chat =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                messages: [
+                  ...chat.messages,
+                  {
+                    role: 'assistant' as MessageRole,
+                    content: '',
+                    timestamp: new Date(),
+                    model: selectedModel.id,
+                  },
+                ],
+              }
+            : chat,
+        ),
       );
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        assistantContent += chunk;
+        const contentSnapshot = assistantContent;
+        setChatSessions(prev =>
+          prev.map(chat =>
+            chat.id === chatId
+              ? {
+                  ...chat,
+                  messages: chat.messages.map((m, idx) =>
+                    idx === chat.messages.length - 1 ? { ...m, content: contentSnapshot } : m,
+                  ),
+                }
+              : chat,
+          ),
+        );
+      }
+
       setLoading(false);
       setIsAgentBusy(false);
       setBusyChatId(null);
+      abortControllerRef.current = null;
     } catch (err) {
+      if ((err as any)?.name === 'AbortError') {
+        setLoading(false);
+        setIsAgentBusy(false);
+        setBusyChatId(null);
+        abortControllerRef.current = null;
+        return;
+      }
       setLoading(false);
       setIsAgentBusy(false);
       setBusyChatId(null);
-      // Optionally handle error: remove the user's message or show error
+      abortControllerRef.current = null;
+      // For genuine errors (non-abort) optionally handle error: remove the user's message or show error
       setChatSessions(prev =>
         prev.map(chat => {
           if (chat.id === chatId) {
@@ -471,6 +527,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const cancelGeneration = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     if (!busyChatId) return;
     try {
       await cancelRequest(busyChatId);
@@ -479,6 +539,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsAgentBusy(false);
       setBusyChatId(null);
+      abortControllerRef.current = null;
     }
   };
 

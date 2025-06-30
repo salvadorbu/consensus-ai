@@ -8,6 +8,7 @@ import uuid
 from typing import List, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 
 from supabase import Client as SupabaseClient
 
@@ -136,6 +137,72 @@ async def delete_chat(
 # In-memory busy state per chat
 _chat_busy = {}
 _chat_futures: dict[str, asyncio.Future] = {}
+
+
+@router.post("/{chat_id}/messages/stream")
+async def send_message_stream(
+    chat_id: uuid.UUID,
+    msg_in: UserMessageCreate,
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    client: SupabaseClient = Depends(get_supabase_client),
+):
+    """Stream assistant response tokens for a given user message."""
+
+    # Prevent concurrent generations per chat
+    if _chat_busy.get(str(chat_id), False):
+        raise HTTPException(status_code=409, detail="Agent is still responding. Please wait for the previous response to complete.")
+    _chat_busy[str(chat_id)] = True
+
+    row_chat = await chat_service.get_chat(client, chat_id)
+    if row_chat is None or row_chat["user_id"] != str(current_user.id):
+        _chat_busy[str(chat_id)] = False
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    # 1) Persist the user message (fire-and-forget)
+    await message_service.create_user_message(client, chat_id, msg_in.content)
+
+    # 2) Assemble conversation history
+    rows_history = await message_service.list_messages(client, chat_id)
+    messages_payload = [
+        {"role": r["role"], "content": r["content"]} for r in rows_history if r.get("content")
+    ]
+
+    model_to_use = msg_in.model or row_chat["default_model"]
+
+    loop = asyncio.get_running_loop()
+    queue: asyncio.Queue[str | None] = asyncio.Queue()
+    collected_tokens: list[str] = []
+
+    def _run_and_stream() -> None:
+        try:
+            agent = Agent(model_to_use)
+            for token in agent.chat_stream(messages_payload):
+                collected_tokens.append(token)
+                asyncio.run_coroutine_threadsafe(queue.put(token), loop)
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.error("Streaming generation failed: %s", exc)
+        finally:
+            asyncio.run_coroutine_threadsafe(queue.put(None), loop)
+
+    # Launch in executor so we don't block the event loop
+    fut = loop.run_in_executor(None, _run_and_stream)
+    _chat_futures[str(chat_id)] = fut
+
+    async def _streamer():
+        try:
+            while True:
+                chunk = await queue.get()
+                if chunk is None:
+                    break
+                yield chunk
+        finally:
+            _chat_futures.pop(str(chat_id), None)
+            assistant_content = "".join(collected_tokens)
+            if assistant_content.strip():
+                await message_service.create_assistant_message(client, chat_id, model_to_use, assistant_content)
+            _chat_busy[str(chat_id)] = False
+
+    return StreamingResponse(_streamer(), media_type="text/plain")
 
 
 @router.post("/{chat_id}/messages", response_model=MessageRead, status_code=status.HTTP_201_CREATED)
