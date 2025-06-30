@@ -11,14 +11,6 @@ interface ChatMessagesProps {
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages }) => {
   const { loading } = useChatContext();
 
-  if (messages.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Start a conversation by typing a message below.</p>
-      </div>
-    );
-  }
-
   const lastMsg = messages[messages.length - 1];
   const waitingForBot = loading && lastMsg && lastMsg.role === 'user';
 

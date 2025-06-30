@@ -138,45 +138,60 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       try {
         const chatWithMessages = await getChat(activeChatId);
-        // Only overwrite messages if local messages are still empty (prevents overwriting optimistic messages)
-        setChatSessions(prev => prev.map(chat => {
-          if (chat.id === activeChatId) {
-            if (chat.messages && chat.messages.length > 0) {
-              // Don't overwrite optimistic messages
-              return chat;
-            }
-            return {
-              ...chat,
-              messages: [
-                ...chatWithMessages.messages.map(msg => ({
-                  role: msg.role as MessageRole,
-                  content: msg.content,
-                  timestamp: new Date(msg.created_at),
-                  model: msg.model,
-                  isConsensus: msg.model === 'consensus',
-                })),
-                ...chatWithMessages.channels
-                  .filter(c => c.answer)
-                  .filter(
-                    c =>
-                      !chatWithMessages.messages.some(
-                        m => m.model === 'consensus' && m.content === c.answer,
-                      ),
-                  )
-                  .map(c => ({
-                    role: 'assistant' as MessageRole,
-                    content: c.answer as string,
-                    timestamp: new Date(c.finished_at ?? c.created_at),
-                    model: 'consensus',
-                    isConsensus: true,
-                  })),
-              ],
-              lastUpdated: new Date(chatWithMessages.updated_at),
-            };
+        setChatSessions(prev => {
+          const existingChat = prev.find(chat => chat.id === activeChatId);
+          const enrichedMessages = [
+            ...chatWithMessages.messages.map(msg => ({
+              role: msg.role as MessageRole,
+              content: msg.content,
+              timestamp: new Date(msg.created_at),
+              model: msg.model,
+              isConsensus: msg.model === 'consensus',
+            })),
+            ...chatWithMessages.channels
+              .filter(c => c.answer)
+              .filter(
+                c =>
+                  !chatWithMessages.messages.some(
+                    m => m.model === 'consensus' && m.content === c.answer,
+                  ),
+              )
+              .map(c => ({
+                role: 'assistant' as MessageRole,
+                content: c.answer as string,
+                timestamp: new Date(c.finished_at ?? c.created_at),
+                model: 'consensus',
+                isConsensus: true,
+              })),
+          ];
+
+          if (existingChat) {
+            // Update existing chat
+            return prev.map(chat =>
+              chat.id === activeChatId
+                ? {
+                    ...chat,
+                    messages: existingChat.messages && existingChat.messages.length > 0
+                      ? existingChat.messages // keep optimistic messages if present
+                      : enrichedMessages,
+                    lastUpdated: new Date(chatWithMessages.updated_at),
+                  }
+                : chat,
+            );
           }
-          return chat;
-        }));
-        fetchedChatIdsRef.current.add(activeChatId); // Mark as fetched after successful fetch
+          // Chat not in state yet (e.g., hard refresh on a deep link) – add it
+          return [
+            {
+              id: chatWithMessages.id,
+              title: chatWithMessages.name,
+              messages: enrichedMessages,
+              lastUpdated: new Date(chatWithMessages.updated_at),
+            },
+            ...prev,
+          ];
+        });
+        // Mark as fetched only after we've successfully inserted/updated the chat
+        fetchedChatIdsRef.current.add(activeChatId);
         // Set selected model to the model of the latest message, if any
         if (chatWithMessages.messages && chatWithMessages.messages.length > 0) {
           const latestMsg = chatWithMessages.messages[chatWithMessages.messages.length - 1];
