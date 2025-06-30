@@ -151,13 +151,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         onClick={onClose}
       >
       <div
-        className="relative w-full max-w-[48rem] mx-4 rounded-2xl p-0 shadow-2xl border-2 border-blue-500 bg-gray-900 rounded-2xl"
+        className="relative w-full sm:max-w-lg md:max-w-3xl lg:max-w-5xl h-[90vh] md:h-[85vh] lg:h-[80vh] mx-4 rounded-2xl p-0 shadow-2xl border-2 border-blue-500 bg-gray-900 overflow-hidden"
         onClick={e => e.stopPropagation()}
         style={{
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-          minHeight: '700px',
-          height: '820px',
-          maxHeight: '90vh',
         }}
       >
 
