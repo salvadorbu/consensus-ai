@@ -1,25 +1,28 @@
 import React from 'react';
 import { Message } from '../../types';
 import MessageBubble from './MessageBubble';
-import LoadingMessage from './LoadingMessage';
-import { useChatContext } from '../../context/ChatContext';
+import TypingIndicator from './TypingIndicator';
+
+
 
 interface ChatMessagesProps {
   messages: Message[];
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages }) => {
-  const { loading } = useChatContext();
-
   const lastMsg = messages[messages.length - 1];
-  const waitingForBot = loading && lastMsg && lastMsg.role === 'user';
+  const typing = lastMsg && lastMsg.role === 'assistant' && lastMsg.content === '';
+  const visibleMessages = typing ? messages.slice(0, -1) : messages;
+
+
+
 
   return (
     <div className="space-y-6">
-      {messages.map((message, index) => (
+      {visibleMessages.map((message, index) => (
         <MessageBubble key={index} message={message} />
       ))}
-      {waitingForBot && <LoadingMessage />}
+      {typing && <TypingIndicator />}
     </div>
   );
 };
