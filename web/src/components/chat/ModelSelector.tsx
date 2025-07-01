@@ -10,6 +10,7 @@ import MicrosoftIcon from '../../assets/providers/microsoft.svg?react';
 import MetaIcon from '../../assets/providers/meta.svg?react';
 import AnthropicIcon from '../../assets/providers/anthropic.svg?react';
 import QwenIcon from '../../assets/providers/qwen.svg?react';
+import OpenRouterIcon from '../../assets/providers/openrouter.svg?react';
 import { AIModel } from '../../types';
 import { listModels } from '../../api/models';
 import { useChatContext } from '../../context/ChatContext';
@@ -27,6 +28,7 @@ const providerIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> =
   Meta: MetaIcon,
   Anthropic: AnthropicIcon,
   Qwen3: QwenIcon,
+  OpenRouter: OpenRouterIcon,
 };
 
 function parseModelName(name: string): { provider: string | null; short: string } {
@@ -133,10 +135,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
         {(() => {
             if (!selectedModel) return <span className="truncate">Select model</span>;
             const { provider, short } = parseModelName(selectedModel.name);
-            const Icon = provider ? providerIconMap[provider] : undefined;
+            const Icon = provider && providerIconMap[provider] ? providerIconMap[provider] : OpenRouterIcon;
             return (
               <span className="truncate flex items-center gap-1">
-                {Icon && <Icon className="w-4 h-4 inline-block text-gray-400 opacity-70" />}
+                <Icon className="w-4 h-4 inline-block text-gray-400 opacity-70" />
                 {short}
               </span>
             );
@@ -180,10 +182,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
                   <div className="flex items-center gap-2">
                     {(() => {
                       const { provider, short } = parseModelName(model.name);
-                      const Icon = provider ? providerIconMap[provider] : undefined;
+                      const Icon = provider && providerIconMap[provider] ? providerIconMap[provider] : OpenRouterIcon;
                       return (
                         <>
-                          {Icon && <Icon className="w-4 h-4 mr-2 inline-block text-gray-400" />}
+                          <Icon className="w-4 h-4 mr-2 inline-block text-gray-400" />
                           <span className="font-medium text-sm">{short}</span>
                         </>
                       );
