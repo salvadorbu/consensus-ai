@@ -63,6 +63,7 @@ def _run_channel(client: SupabaseClient, channel_id: str, chat_id: Optional[uuid
                 "status": "finished",
                 "rounds_executed": channel.rounds_executed,
                 "answer": answer,
+                "log": log_payload,
             }
         )
         # Persist channel row async

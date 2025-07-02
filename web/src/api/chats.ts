@@ -21,6 +21,7 @@ export interface Message {
   model: string;
   content: string;
   created_at: string; // ISO timestamp
+  channel?: ConsensusChannel;
 }
 
 import type { ConsensusChannel } from '../types/consensus';

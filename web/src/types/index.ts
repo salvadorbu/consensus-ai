@@ -6,6 +6,7 @@ export interface Message {
   timestamp: Date;
   model?: string;
   isConsensus?: boolean;
+  channelId?: string;
 }
 
 export interface ChatSession {

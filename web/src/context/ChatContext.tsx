@@ -151,6 +151,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               timestamp: new Date(msg.created_at),
               model: msg.model,
               isConsensus: msg.model === 'consensus',
+              channelId: (msg as any).channel?.id,
             })),
             ...chatWithMessages.channels
               .filter(c => c.answer)
@@ -166,6 +167,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 timestamp: new Date(c.finished_at ?? c.created_at),
                 model: 'consensus',
                 isConsensus: true,
+                channelId: c.id,
               })),
           ];
 
@@ -373,6 +375,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                       timestamp: new Date(assistantMsg.created_at),
                       model: assistantMsg.model,
                       isConsensus: true,
+                      channelId: assistantMsg.channel?.id,
                     },
                   ],
                 }
@@ -400,6 +403,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                           timestamp: new Date(msg.created_at),
                           model: msg.model,
                           isConsensus: msg.model === 'consensus',
+                          channelId: msg.channel?.id,
                         })),
                       }
                     : chat,

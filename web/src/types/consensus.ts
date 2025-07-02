@@ -5,4 +5,5 @@ export interface ConsensusChannel {
   answer?: string | null;
   created_at: string;
   finished_at?: string | null;
+  log?: Record<string, { role: string; content: string }[]>;
 }

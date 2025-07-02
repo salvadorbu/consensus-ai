@@ -17,6 +17,7 @@ export interface ChannelStatusResponse {
   rounds_executed: number;
   answer?: string | null;
   error?: string;
+  log?: Record<string, { role: string; content: string }[]>;
 }
 
 export const ChannelsApi = {

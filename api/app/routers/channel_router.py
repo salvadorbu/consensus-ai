@@ -26,6 +26,7 @@ class ChannelStatusResponse(BaseModel):
     rounds_executed: int
     answer: str | None = None
     error: str | None = None
+    log: dict[str, list[dict[str, str]]] | None = None
 
 
 @router.post("/", response_model=dict)
@@ -56,6 +57,7 @@ async def get_channel_status_endpoint(
             rounds_executed=cache.get("rounds_executed", 0),
             answer=cache.get("answer"),
             error=cache.get("error"),
+            log=cache.get("log"),
         )
 
     if cache is None:
