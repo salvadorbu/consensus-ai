@@ -15,7 +15,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, toggleCollapsed }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { selectChat } = useChatContext();
 
   // State to handle profile popover visibility and position
@@ -107,10 +107,14 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
               }
               toggleProfileMenu();
             }}
-            className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors relative"
+            className={`p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition-colors relative flex items-center gap-2 ${isCollapsed ? '' : 'pl-3 pr-2'}`}
             title={isAuthenticated ? 'Profile' : 'Sign In'}
           >
             {isAuthenticated ? <UserCircle size={20} /> : <LogIn size={20} />}
+            {/* Show user email to the right of the profile icon when expanded */}
+            {!isCollapsed && isAuthenticated && (
+              <span className="text-sm max-w-[120px] truncate">{user?.email}</span>
+            )}
           </button>
 
           {/* Profile popover */}
