@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, CreditCard, Settings as SettingsIcon, Layers, Trash2 } from 'lucide-react';
+import { User, CreditCard, Settings as SettingsIcon, Layers, HelpCircle, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ModelSelector from '../chat/ModelSelector';
 import { useConsensusSettings } from '../../context/ConsensusContext';
@@ -227,7 +227,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               )}
               {selectedSection === 'consensus' && (
                 <section>
-                  <h3 className="text-lg font-semibold mb-4 text-gray-100 flex items-center"><Layers size={18} className="inline-block mr-2" />Consensus</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-gray-100 flex items-center">
+                    <Layers size={18} className="inline-block mr-2" />
+                    Consensus
+                    <span className="relative group ml-2">
+                      <HelpCircle
+                        size={16}
+                        className="text-gray-400 hover:text-gray-300 cursor-help"
+                      />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-2 rounded-md bg-gray-800 text-gray-200 text-sm shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+                        Creates a conversation where multiple AI models collaborate and agree on a single answer to your question.
+                      </div>
+                    </span>
+                  </h3>
 
                   <ProfileSection />
 

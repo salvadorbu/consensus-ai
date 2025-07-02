@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import ProfileSelector from './ProfileSelector';
 import ConsensusButton from './ConsensusButton';
 import { useChatContext } from '../../context/ChatContext';
+import { useProfiles } from '../../context/ProfilesContext';
 
 interface ChatInputProps {
   onOpenSettings?: () => void;
@@ -15,6 +16,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
   const [useConsensus, setUseConsensus] = useState(false);
   const { sendMessage, isAgentBusy, cancelGeneration } = useChatContext();
   const { isAuthenticated } = useAuth();
+  const { profiles } = useProfiles();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -66,6 +68,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
     }
   };
 
+  // Handler for toggling consensus mode
+  const handleToggleConsensus = () => {
+    // If trying to enable consensus but no profiles exist, show notice
+    if (!useConsensus && profiles.length === 0) {
+      alert('Please create a consensus profile first in Settings → Consensus.');
+      return;
+    }
+    setUseConsensus(!useConsensus);
+  };
+
   return (
     <form 
       onSubmit={handleSubmit}
@@ -101,7 +113,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings }) => {
               ) : (
                 <ModelSelector disabled={false} />
               )}
-              <ConsensusButton active={useConsensus} onClick={() => setUseConsensus(!useConsensus)} />
+              <ConsensusButton active={useConsensus} onClick={handleToggleConsensus} />
             </div>
 
             <div className="flex items-center space-x-2">

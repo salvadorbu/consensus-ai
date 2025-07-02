@@ -161,6 +161,22 @@ async def send_message_stream(
     # 1) Persist the user message (fire-and-forget)
     await message_service.create_user_message(client, chat_id, msg_in.content)
 
+    # ------------------------------------------------------------------
+    # Give the chat a proper title the first time a user speaks
+    # ------------------------------------------------------------------
+    if row_chat.get("name") in (None, "", "New Conversation"):
+        from ..services.title_service import make_title  # late import to avoid cycles
+        try:
+            title = await make_title(msg_in.content)
+            if title:
+                await chat_service.update_chat(client, chat_id, current_user.id, {"name": title})
+                # Refresh the in-memory row_chat dict so downstream code (if any)
+                # sees the updated title
+                row_chat["name"] = title
+        except Exception:  # pylint: disable=broad-except
+            # Never let title generation break the main request flow
+            pass
+
     # 2) Assemble conversation history
     rows_history = await message_service.list_messages(client, chat_id)
     messages_payload = [
@@ -227,6 +243,22 @@ async def send_message(
         # 1) Persist *user* message
         user_msg = await message_service.create_user_message(client, chat_id, msg_in.content)
         user_msg_id = user_msg["id"]
+
+        # ------------------------------------------------------------------
+        # Give the chat a proper title the first time a user speaks
+        # ------------------------------------------------------------------
+        if row_chat.get("name") in (None, "", "New Conversation"):
+            from ..services.title_service import make_title  # late import to avoid cycles
+            try:
+                title = await make_title(msg_in.content)
+                if title:
+                    await chat_service.update_chat(client, chat_id, current_user.id, {"name": title})
+                    # Refresh the in-memory row_chat dict so downstream code (if any)
+                    # sees the updated title
+                    row_chat["name"] = title
+            except Exception:  # pylint: disable=broad-except
+                # Never let title generation break the main request flow
+                pass
 
         # 2) Build conversation history for the assistant call
         rows_history = await message_service.list_messages(client, chat_id)

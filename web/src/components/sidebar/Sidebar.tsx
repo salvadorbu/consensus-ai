@@ -135,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
                   Settings
                 </button>
                 <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-700 text-red-400 hover:text-red-300 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-700 transition-colors flex items-center gap-2"
                   onClick={() => {
                     logout();
                     setShowProfileMenu(false);
@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar, isCollapsed = false, to
                     navigate('/');
                   }}
                 >
-                  <LogOut size={16} /> Logout
+                  <LogOut size={16} /> Log out
                 </button>
               </div>,
               document.body

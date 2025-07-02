@@ -208,12 +208,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (err) {
         console.error('Failed to fetch chat messages:', err);
+        // If the chat does not exist or the user has no access (404/403/401),
+        // automatically redirect them to the home page and clear the active chat
+        if (
+          err instanceof Error &&
+          (err.message.startsWith('API 404') ||
+            err.message.startsWith('API 403') ||
+            err.message.startsWith('API 401'))
+        ) {
+          navigate('/');
+          setActiveChatId(null);
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchChatMessages();
-  }, [activeChatId, chatSessions]);
+  }, [activeChatId, chatSessions, navigate]);
 
   // Reset fetched chatIds when chatSessions are reloaded (e.g., on logout/login)
   useEffect(() => {
