@@ -98,4 +98,4 @@ const ConsensusChannelView: React.FC<ConsensusChannelViewProps> = ({ channelId }
   );
 };
 
-export default ConsensusChannelView; 
+export default ConsensusChannelView;
