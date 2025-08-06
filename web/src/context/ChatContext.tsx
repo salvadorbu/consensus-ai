@@ -38,6 +38,7 @@ interface ChatContextType {
   loading: boolean;
   isAgentBusy: boolean;
   cancelGeneration: () => void;
+  modelsLoading: boolean;
 }
 
 // Helper: loading state for models
@@ -59,6 +60,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(false);
   const [isAgentBusy, setIsAgentBusy] = useState(false);
   const [busyChatId, setBusyChatId] = useState<string | null>(null);
+  const [modelsLoading, setModelsLoading] = useState(true);
   // Keep reference to current AbortController so we can cancel fetch stream
   const abortControllerRef = useRef<AbortController | null>(null);
   const { isAuthenticated } = useAuth();
@@ -84,6 +86,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     (async () => {
       try {
+        setModelsLoading(true);
         // Fetch first 100 models (adjust as needed)
         const resp = await (await import('../api/models')).listModels({ page: 1, limit: 100 });
         const data = resp.results;
@@ -93,6 +96,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (err) {
         console.error('Failed to load models:', err);
         setAvailableModels([]);
+      } finally {
+        setModelsLoading(false);
       }
     })();
   }, []);
@@ -282,6 +287,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Send a message using the backend API
   const sendMessage = async (content: string, useConsensus?: boolean) => {
+    // Check if user is authenticated before sending message
+    if (!isAuthenticated) {
+      navigate('/signin');
+      return;
+    }
+    
     if (isAgentBusy) return; // Prevent sending if agent is busy
     setIsAgentBusy(true);
     setBusyChatId(activeChatId);
@@ -572,11 +583,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loading,
     isAgentBusy,
     cancelGeneration,
+    modelsLoading,
   };
-
-  if (!selectedModel || selectedModel.id === '') {
-    return <div className="flex items-center justify-center h-full text-gray-400">Loading models...</div>;
-  }
 
   return (
     <ChatContext.Provider value={contextValue}>

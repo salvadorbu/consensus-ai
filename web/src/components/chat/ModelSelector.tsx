@@ -54,9 +54,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { selectedModel: ctxModel, setSelectedModel: setCtxModel } = useChatContext();
+  const { selectedModel: ctxModel, setSelectedModel: setCtxModel, modelsLoading } = useChatContext();
 
   // Determine controlled vs uncontrolled (ChatContext) mode
   const controlled = typeof value !== 'undefined' && typeof onChange === 'function';
@@ -69,6 +70,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
       const data = await listModels({ page: pageNum, limit: PAGE_SIZE, q: query });
       if (pageNum === 1) {
         setModels(data.results);
+        setHasReachedEnd(false);
       } else {
         setModels(prev => [...prev.filter(model => !data.results.find(m => m.id === model.id)), ...data.results]);
       }
@@ -77,15 +79,24 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
         setSelectedModel(data.default_model);
       }
     } catch (err: any) {
-      // If the backend returns 404 (no models match the query) treat it as an empty result set
+      // Handle 404 errors differently based on context
       if (typeof err?.message === 'string' && err.message.includes('404')) {
-        setModels([]);
-        setTotal(0);
+        if (pageNum === 1) {
+          // 404 on first page means no models found for search - clear results
+          setModels([]);
+          setTotal(0);
+        } else {
+          // 404 on subsequent pages means we've reached the end of pagination
+          setHasReachedEnd(true);
+        }
       } else {
         // Log unexpected errors to aid debugging
         console.error('Model fetch failed', err?.message ?? err);
-        setModels([]);
-        setTotal(0);
+        // Only clear models on genuine errors, not pagination end
+        if (pageNum === 1) {
+          setModels([]);
+          setTotal(0);
+        }
       }
     } finally {
       setLoading(false);
@@ -98,9 +109,13 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
     fetchModels(page, search);
   }, [isOpen, page, search]);
 
+  // Show loading state when context is loading models
+  const isLoading = loading || modelsLoading;
+
   // Reset to first page when search term changes
   useEffect(() => {
     setPage(1);
+    setHasReachedEnd(false);
   }, [search]);
 
   // Close dropdown on outside click
@@ -133,6 +148,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
         className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'}`}
       >
         {(() => {
+            if (modelsLoading) return <span className="truncate">Loading models...</span>;
             if (!selectedModel) return <span className="truncate">Select model</span>;
             const { provider, short } = parseModelName(selectedModel.name);
             const Icon = provider && providerIconMap[provider] ? providerIconMap[provider] : OpenRouterIcon;
@@ -161,7 +177,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
               onScroll={e => {
                 const target = e.currentTarget;
                 if (
-                  !loading &&
+                  !isLoading &&
+                  !hasReachedEnd &&
                   models.length < total &&
                   target.scrollTop + target.clientHeight >= target.scrollHeight - 10
                 ) {
@@ -169,8 +186,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
                 }
               }}
             >
-              {loading && <div className="text-xs text-gray-400 px-2 py-2">Loading...</div>}
-              {!loading && models.length === 0 && (
+              {isLoading && <div className="text-xs text-gray-400 px-2 py-2">Loading...</div>}
+              {!isLoading && models.length === 0 && (
                 <div className="text-xs text-gray-400 px-2 py-2">No models found.</div>
               )}
               {models.map(model => (
@@ -195,7 +212,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false, value, 
                 </button>
               ))}
             </div>
-            {loading && models.length < total && (
+            {isLoading && models.length < total && !hasReachedEnd && (
               <div className="text-xs text-gray-400 px-2 py-2 text-center">Loading more...</div>
             )}
           </div>
